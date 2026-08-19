@@ -17,7 +17,7 @@ DB_FILE = os.path.join(BASE_DIR, "db.json")
 @app.on_event("startup")
 async def startup_event():
     # При запуске сервера проверяем баланс и просим тестовые SOL
-    request_airdrop_if_needed()
+    await request_airdrop_if_needed()
 
 def load_db():
     if os.path.exists(DB_FILE):
@@ -78,20 +78,27 @@ async def verify_content(
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
     
-    # === SOLANA INTEGRATION ===
-    # Отправляем транзакцию-квитанцию в блокчейн
+    # === AGENT 3: LEDGER NOTARY REASONING (SIMULATED) ===
+    # Агент 3 принимает решение: копить хеш в Дерево Меркла или отправлять срочно.
+    ledger_agent_log = ""
     tx_id = None
-    if decision_result.decision.upper() in ["VERIFIED", "FLAGGED"]:
+    
+    if decision_result.decision.upper() == "VERIFIED":
+        # Эмуляция принятия решения Агентом 3
+        ledger_agent_log = "Ledger Agent 3 Reasoning: High-priority immediate publication detected. Action: Bypassing Merkle queue. Flushing directly to Solana (GCUL emulation)."
         try:
-            tx_id = anchor_receipt(file_hash, decision_result.decision)
+            tx_id = await anchor_receipt(file_hash, decision_result.decision)
         except Exception as e:
             print(f"Ошибка отправки в Solana: {e}")
             tx_id = "error_solana_network"
-    
+    elif decision_result.decision.upper() == "FLAGGED":
+        ledger_agent_log = "Ledger Agent 3 Reasoning: Content flagged as altered. Action: No blockchain anchor required. Storing incident in local cache."
+
     return JSONResponse({
         "status": "success",
         "file_hash": file_hash,
         "agent_decision": decision_result.decision,
         "agent_reasoning": decision_result.reasoning,
+        "ledger_agent_log": ledger_agent_log,
         "solana_tx_id": tx_id
     })

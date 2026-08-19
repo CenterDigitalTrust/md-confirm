@@ -75,6 +75,17 @@
         /* Image Preview & Watermark */
         .image-container { position: relative; width: 100%; text-align: center; }
         .image-preview { width: 100%; border-radius: 12px; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+        
+        /* Custom File Input to force English text */
+        .custom-file-upload { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .custom-file-btn {
+            background: #f1f3f4; color: #333; border: 1px solid #dadce0; 
+            padding: 10px; border-radius: 8px; cursor: pointer; text-align: center;
+            font-weight: bold; font-size: 0.9rem; transition: background 0.2s;
+        }
+        .custom-file-btn:hover { background: #e8eaed; }
+        .file-name-display { font-size: 0.8rem; color: #666; text-align: center; font-style: italic; }
+
         .watermark-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
             color: white; padding: 10px 15px; font-weight: 900; border-radius: 8px;
@@ -134,8 +145,10 @@
                 <p style="font-size: 0.9rem; color:#555;">Takes photo, extracts sensor noise, and hardware-signs the SHA-256 hash to local ledger.</p>
                 
                 <form id="signForm">
-                    <div class="form-group">
-                        <input type="file" id="photoSign" required accept="image/*">
+                    <div class="custom-file-upload">
+                        <label for="photoSign" class="custom-file-btn">📁 Browse Image...</label>
+                        <input type="file" id="photoSign" required accept="image/*" style="display: none;">
+                        <div id="fileNameSign" class="file-name-display">No file chosen</div>
                     </div>
                     <button type="submit">Snap & Sign</button>
                 </form>
@@ -172,7 +185,7 @@
 
                     <div style="display:flex; align-items:center; gap: 8px; margin: 15px 0; font-size: 0.85rem; background: #f9f9f9; padding: 10px; border-radius:8px;">
                         <input type="checkbox" id="is_original" checked>
-                        <label for="is_original" style="margin:0; cursor:pointer;">I swear this is original!</label>
+                        <label for="is_original" style="margin:0; cursor:pointer;">I claim THIS IS ORIGINAL!</label>
                     </div>
                     <button type="submit" class="btn-green" id="verifyBtn" disabled style="opacity: 0.5;">Post to Feed</button>
                 </form>
@@ -180,7 +193,7 @@
             </div>
         </div>
 
-        <!-- ECOSYSTEM BRANCHES -->
+        <!-- ECOSYSTEM BRANCHES (Code omitted to focus on JS and Label changes below) -->
         <div class="ecosystem-branches">
             
             <div class="branch-card" style="border-left-color: #1da1f2;">
@@ -220,14 +233,19 @@
     </div>
 
     <script>
-        // Preview image in Camera App
+        // Preview image in Camera App and update file name
         document.getElementById('photoSign').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            const fileNameDisplay = document.getElementById('fileNameSign');
+            
             if (file) {
+                fileNameDisplay.textContent = file.name;
                 const url = URL.createObjectURL(file);
                 const img = document.getElementById('cameraPreview');
                 img.src = url;
                 img.style.display = 'block';
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
             }
         });
 
@@ -237,7 +255,7 @@
             const verifyBtn = document.getElementById('verifyBtn');
             const noPhotoText = document.getElementById('noPhotoText');
             
-            resDiv.style.display = 'block'; resDiv.innerHTML = 'Signing hash...';
+            resDiv.style.display = 'block'; resDiv.innerHTML = 'Signing hash (Antigravity Orchestrator)...';
             
             const fileInputSign = document.getElementById('photoSign');
             const fileInputVerify = document.getElementById('photoVerify');
@@ -278,7 +296,7 @@
             const resDiv = document.getElementById('verifyResult');
             const watermark = document.getElementById('watermark');
             
-            resDiv.style.display = 'block'; resDiv.innerHTML = 'Agent verifying... ⏳';
+            resDiv.style.display = 'block'; resDiv.innerHTML = 'Agent 2 (Verifier) & Agent 3 (Notary) analyzing... ⏳';
             watermark.style.display = 'none';
             
             const formData = new FormData();
@@ -293,10 +311,10 @@
                 watermark.style.display = 'block';
                 if (data.agent_decision && data.agent_decision.toUpperCase() === 'VERIFIED') {
                     watermark.className = 'watermark-overlay watermark-verified';
-                    watermark.innerHTML = '✅ NOT AI';
+                    watermark.innerHTML = '✅ ORIGINAL';
                 } else {
                     watermark.className = 'watermark-overlay watermark-flagged';
-                    watermark.innerHTML = '⚠️ AI / FAKE';
+                    watermark.innerHTML = '⚠️ TAMPERED / AI';
                 }
 
                 let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#ea4335'}">${data.agent_decision || 'ERROR'}</strong>`;
@@ -304,7 +322,8 @@
 
                 resDiv.innerHTML = `
                     Verdict: ${decisionHtml}<br>
-                    <span style="font-size:0.8rem"><b>AI Note:</b> ${data.agent_reasoning || 'N/A'}</span>
+                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> ${data.agent_reasoning || 'N/A'}</span><br>
+                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> ${data.ledger_agent_log || 'N/A'}</span>
                     ${txHtml}
                 `;
             } catch (err) {

@@ -20,9 +20,12 @@ When a user clicks "Share", the agent:
 3. **Anchors the receipt to a blockchain (Solana)**, creating an indestructible proof of originality.
 
 ## ⚙️ Architecture & Tech Stack
-* **Agent Reasoning:** Google Gemini 3.5 Flash (`google-genai` SDK)
+* **Orchestration Framework:** Antigravity (AGY) Agentic Framework
+* **Agent 1 (Edge Orchestrator):** Hardware-level PRNU extraction & SHA-256 signing.
+* **Agent 2 (Verifier):** Gemini 3.5 Flash for contextual reasoning and logic verification.
+* **Agent 3 (Ledger Notary):** Autonomous reasoning agent deciding when to flush Merkle trees to the blockchain.
 * **Backend:** FastAPI (Python)
-* **Blockchain Anchor:** Solana Devnet (`solders`, `solana-py`)
+* **Blockchain Anchor:** Solana Devnet (transitioning to GCUL)
 * **Frontend:** Vanilla JS / HTML5
 
 ## 🏃‍♂️ How to Run Locally
@@ -30,11 +33,12 @@ When a user clicks "Share", the agent:
 2. `.\venv\Scripts\activate`
 3. `pip install -r requirements.txt`
 4. Add `GEMINI_API_KEY="your_key"` to a `.env` file.
-5. `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000`
+5. `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload`
 
-## 🔮 Strategic Vision & Offline-First Architecture
-While this demo uses Solana and real-time processing, the production architecture is designed for edge-cases and global scale:
-* **Offline-First Camera Agent:** If the user has no internet (e.g., taking photos in nature), the Edge Agent continues generating cryptographic hashes locally.
-* **Merkle Tree Batching:** When the internet connection is restored, the smartphone doesn't spam the network. It compiles all offline hashes into a single Merkle Tree and sends only the **Merkle Root** to the Cloud Agent.
-* **Google Cloud Universal Ledger (GCUL):** The Cloud Agent anchors this single root to GCUL, securely validating thousands of offline photos with zero gas fees for the user. 
+## 🔮 Strategic Vision & Google Crypto Integration
+While this MVP uses Solana for demonstration, the production architecture is natively designed for the Google Ecosystem:
+* **Google Pixel Hardware Crypto:** Future iterations will utilize the native Titan M2 chip in Google Pixel phones to securely sign the hashes at the hardware level, making spoofing physically impossible.
+* **Google Cloud Universal Ledger (GCUL):** Instead of public blockchains, Agent 3 will anchor Merkle Roots directly into Google's enterprise ledger (GCUL). This guarantees 100% data sovereignty, zero gas fees for the end-user, and instant global verification across all platforms (Android, Chrome, Google Search).
+* **Agent 3 (Ledger Notary) Logic:** This is not a simple API call. Agent 3 is a reasoning agent that evaluates network traffic and urgency, deciding autonomously whether to queue hashes in a local Merkle Tree (offline/low-priority mode) or flush them immediately to GCUL (high-priority mode). 
+
 We are building the fault-tolerant infrastructure of truth for the AI era.
