@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+google-genai
+solana
+c2pa-python
+python-multipart
+jinja2
+pydantic

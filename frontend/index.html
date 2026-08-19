@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD-Confirm: Anti-Fake Crypto Demo</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; color: #333; max-width: 900px; margin: 0 auto; padding: 2rem; display: flex; gap: 2rem; flex-wrap: wrap;}
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 300px;}
+        h1 { color: #1a73e8; font-size: 1.3rem; margin-top: 0;}
+        p { font-size: 0.95rem; color: #555; }
+        .form-group { margin-bottom: 1.5rem; }
+        input[type="file"] { width: 90%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #1a73e8; color: white; border: none; padding: 0.75rem 1.5rem; font-size: 1rem; border-radius: 4px; cursor: pointer; width: 100%; transition: background 0.3s;}
+        button:hover { background: #1557b0; }
+        .result { margin-top: 1.5rem; padding: 1rem; border-radius: 4px; background: #e8f0fe; display: none; word-wrap: break-word; font-size: 0.9rem;}
+        .decision-verified { color: #34a853; font-weight: bold; font-size: 1.2rem;}
+        .decision-flagged { color: #ea4335; font-weight: bold; font-size: 1.2rem;}
+        
+        /* Стили для картинки и ватермарки */
+        .image-container { position: relative; display: inline-block; margin-top: 15px; max-width: 100%; width: 100%; text-align: center;}
+        .image-preview { max-width: 100%; max-height: 250px; border-radius: 8px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .watermark-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
+            color: white; padding: 10px 20px; font-weight: 900; border-radius: 8px;
+            font-size: 28px; text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 4px solid white;
+            display: none; pointer-events: none; opacity: 0.9;
+        }
+        .watermark-verified { background: rgba(52, 168, 83, 0.85); text-shadow: 1px 1px 2px #000; }
+        .watermark-flagged { background: rgba(234, 67, 53, 0.85); text-shadow: 1px 1px 2px #000; }
+    </style>
+</head>
+<body>
+    
+    <!-- ШАГ 1: КАМЕРА -->
+    <div class="card">
+        <h1>📸 Шаг 1: Камера (Подпись оригинала)</h1>
+        <p>Сначала мы "фотографируем" объект. Наш код считывает байты фото, генерирует крипто-хеш SHA-256 и добавляет его в реестр доверенных оригиналов.</p>
+        <form id="signForm">
+            <div class="form-group">
+                <input type="file" id="photoSign" required accept="image/*">
+            </div>
+            <button type="submit">Подписать оригинал</button>
+        </form>
+        <div id="signResult" class="result"></div>
+    </div>
+
+    <!-- ШАГ 2: ЦЕНЗОР -->
+    <div class="card" style="border-left: 5px solid #34a853;">
+        <h1 style="color: #34a853;">🛡️ Шаг 2: Цензор (Верификация)</h1>
+        <p>Теперь загрузите фото в "соцсеть". Цензор проверит фото и поставит визуальную печать.</p>
+        <form id="verifyForm">
+            <div class="form-group">
+                <input type="file" id="photoVerify" required accept="image/*">
+            </div>
+            
+            <div class="image-container">
+                <img id="imgPreview" class="image-preview" src="" alt="Preview">
+                <div id="watermark" class="watermark-overlay"></div>
+            </div>
+
+            <div class="form-group" style="display:flex; align-items:center; gap: 0.5rem; margin-top: 15px;">
+                <input type="checkbox" id="is_original">
+                <label for="is_original" style="margin:0;">Клянусь, что это оригинал!</label>
+            </div>
+            <button type="submit" style="background: #34a853;">Загрузить и Проверить ИИ-Агентом</button>
+        </form>
+        <div id="verifyResult" class="result"></div>
+    </div>
+
+    <script>
+        // Превью картинки перед загрузкой
+        document.getElementById('photoVerify').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const img = document.getElementById('imgPreview');
+                img.src = url;
+                img.style.display = 'inline-block';
+                document.getElementById('watermark').style.display = 'none'; // прячем старую марку
+            }
+        });
+
+        document.getElementById('signForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resDiv = document.getElementById('signResult');
+            resDiv.style.display = 'block'; resDiv.innerHTML = 'Вычисляем SHA-256...';
+            
+            const formData = new FormData();
+            formData.append('file', document.getElementById('photoSign').files[0]);
+            
+            const response = await fetch('/sign', { method: 'POST', body: formData });
+            const data = await response.json();
+            resDiv.innerHTML = `<strong>Фото аппаратно подписано!</strong><br><br><span style="color:gray">Хеш (SHA-256):<br>${data.hash.substring(0,30)}...</span>`;
+        });
+
+        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resDiv = document.getElementById('verifyResult');
+            const watermark = document.getElementById('watermark');
+            
+            resDiv.style.display = 'block'; resDiv.innerHTML = 'Агент анализирует и пишет в блокчейн... ⏳';
+            watermark.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('file', document.getElementById('photoVerify').files[0]);
+            formData.append('is_original', document.getElementById('is_original').checked);
+            
+            const response = await fetch('/verify', { method: 'POST', body: formData });
+            const data = await response.json();
+            
+            // Логика визуальной ватермарки
+            watermark.style.display = 'block';
+            if (data.agent_decision.toUpperCase() === 'VERIFIED') {
+                watermark.className = 'watermark-overlay watermark-verified';
+                watermark.innerHTML = '✅ NOT AI';
+            } else {
+                watermark.className = 'watermark-overlay watermark-flagged';
+                watermark.innerHTML = '⚠️ AI / FAKE';
+            }
+
+            let decisionHtml = `<span class="decision-${data.agent_decision.toLowerCase()}">${data.agent_decision}</span>`;
+            let txHtml = data.solana_tx_id ? `<br><br><span style="color:blue;">🔗 Транзакция в Solana:<br><a href="https://explorer.solana.com/tx/${data.solana_tx_id}?cluster=devnet" target="_blank">${data.solana_tx_id.substring(0,30)}...</a></span>` : '';
+
+            resDiv.innerHTML = `
+                Вердикт Агента: ${decisionHtml}<br><br>
+                <strong>Обоснование ИИ:</strong><br>${data.agent_reasoning}<br><br>
+                <span style="color:gray; font-size: 0.8rem">Хеш загруженного файла:<br>${data.file_hash.substring(0,20)}...</span>
+                ${txHtml}
+            `;
+        });
+    </script>
+</body>
+</html>
