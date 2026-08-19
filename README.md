@@ -19,11 +19,15 @@ When a user clicks "Share", the agent:
 2. Uses **Gemini 3.5 Flash** to reason about the image's authenticity.
 3. **Anchors the receipt to a blockchain (Solana)**, creating an indestructible proof of originality.
 
-## ⚙️ Architecture & Tech Stack
-* **Orchestration Framework:** Antigravity (AGY) Agentic Framework
+## ⚙️ Architecture & Tech Stack (GCP Native)
 * **Agent 1 (Edge Orchestrator):** Hardware-level PRNU extraction & SHA-256 signing.
 * **Agent 2 (Verifier):** Gemini 3.5 Flash for contextual reasoning and logic verification.
-* **Agent 3 (Ledger Notary):** Autonomous reasoning agent deciding when to flush Merkle trees to the blockchain.
+* **Agent 3 (Ledger Notary):** Autonomous reasoning agent managing Merkle trees.
+* **Orchestration Framework:** Antigravity (AGY) Agentic Framework pattern.
+* **Google Cloud Infrastructure (Mandatory Stack):** 
+  * `Cloud Firestore` (Immutable hash storage & Merkle tree queuing)
+  * `Cloud Pub/Sub` (Asynchronous event streaming from edge devices)
+  * `Cloud Run` (Serverless backend hosting)
 * **Backend:** FastAPI (Python)
 * **Blockchain Anchor:** Solana Devnet (transitioning to GCUL)
 * **Frontend:** Vanilla JS / HTML5
