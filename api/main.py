@@ -5,18 +5,15 @@ import os
 import json
 import asyncio
 
-# === GOOGLE CLOUD INFRASTRUCTURE (MANDATORY HACKATHON STACK) ===
-try:
-    from google.cloud import firestore
-    from google.cloud import pubsub_v1
-    GCP_ENABLED = True
-    db_client = firestore.AsyncClient()
-    publisher = pubsub_v1.PublisherClient()
-    PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "md-confirm-demo")
-    TOPIC_PATH = publisher.topic_path(PROJECT_ID, "agent-verification-events")
-except ImportError:
-    GCP_ENABLED = False
-    print("GCP SDK not found. Running in local MVP mode (Local JSON Mock).")
+# === STRICT GOOGLE CLOUD INFRASTRUCTURE ===
+# По правилам хакатона мы ОБЯЗАНЫ использовать реальную инфраструктуру GCP.
+# Никаких фейковых db.json. Приложение должно падать, если GCP не настроен.
+from google.cloud import firestore
+from google.cloud import pubsub_v1
+
+db_client = firestore.AsyncClient()
+publisher = pubsub_v1.PublisherClient()
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") # Cloud Run подставляет это автоматически
 
 from agent.workflow import analyze_provenance
 from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed
@@ -24,7 +21,6 @@ from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed
 app = FastAPI(title="MD-Confirm Orchestrator")
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-DB_FILE = os.path.join(os.path.dirname(__file__), "..", "db.json")
 
 @app.on_event("startup")
 async def startup_event():
@@ -32,31 +28,15 @@ async def startup_event():
 
 # === FIRESTORE DB ABSTRACTION ===
 async def save_hash_to_db(file_hash: str):
-    """
-    Использует Google Cloud Firestore для хранения хешей (в продакшене).
-    Для локального тестирования откатывается на db.json.
-    """
-    if GCP_ENABLED:
-        # Интеграция с Firestore
-        doc_ref = db_client.collection("trusted_hashes").document(file_hash)
-        await doc_ref.set({"hash": file_hash, "timestamp": firestore.SERVER_TIMESTAMP})
-    else:
-        # Fallback для локального демо без GCP кредитов
-        if os.path.exists(DB_FILE):
-            with open(DB_FILE, "r") as f: data = json.load(f)
-        else:
-            data = {"signed_hashes": []}
-        
-        if file_hash not in data["signed_hashes"]:
-            data["signed_hashes"].append(file_hash)
-            with open(DB_FILE, "w") as f: json.dump(data, f)
+    """Строго сохраняем хеш в Google Cloud Firestore"""
+    doc_ref = db_client.collection("trusted_hashes").document(file_hash)
+    await doc_ref.set({"hash": file_hash, "timestamp": firestore.SERVER_TIMESTAMP})
 
-def check_hash_in_db(file_hash: str) -> bool:
-    # (Для демо используем синхронное чтение json, в проде - Firestore get)
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, "r") as f: data = json.load(f)
-        return file_hash in data.get("signed_hashes", [])
-    return False
+async def check_hash_in_db_async(file_hash: str) -> bool:
+    """Асинхронная проверка наличия хеша в Firestore"""
+    doc_ref = db_client.collection("trusted_hashes").document(file_hash)
+    doc = await doc_ref.get()
+    return doc.exists
 
 # === ANTIGRAVITY ORCHESTRATION PIPELINE ===
 # Этот модуль выступает в роли Chief Orchestrator, управляя потоками между Агентами и GCP.
@@ -78,21 +58,14 @@ async def sign_content(file: UploadFile = File(...)):
 async def verify_content(
     file: UploadFile = File(None), 
     is_original: bool = Form(False)
-):
-    """
-    Эмулирует цензора/Агента: проверяет криптографический хеш файла.
-    Если изменен хотя бы 1 пиксель, хеш не совпадет с базой.
-    """
-    if not file or not file.filename:
-        return JSONResponse({"status": "error", "message": "No file uploaded"}, status_code=400)
-
+async def verify_content(file: UploadFile = File(...), is_original: bool = Form(...)):
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
-    # Проверяем, есть ли хеш в доверенной базе (Firestore / db.json)
-    is_in_db = check_hash_in_db(file_hash)
+    
+    # Проверяем, есть ли хеш в доверенной базе (Строго Firestore)
+    is_in_db = await check_hash_in_db_async(file_hash)
     
     # === AGENT 2: GEMINI VERIFIER (via Antigravity Node) ===
-    # Запускаем ИИ для проверки логики
     decision_result = analyze_provenance(
         file_hash=file_hash,
         is_in_db=is_in_db,
@@ -103,7 +76,6 @@ async def verify_content(
         return JSONResponse({"status": "error", "message": "Agent 2 (Gemini) failed to analyze"}, status_code=500)
     
     # === AGENT 3: LEDGER NOTARY REASONING (SIMULATED) ===
-    # Агент 3 принимает логическое решение о записи в GCUL/Solana
     ledger_agent_log = ""
     tx_id = None
     
@@ -118,13 +90,14 @@ async def verify_content(
         ledger_agent_log = "Ledger Agent 3 Reasoning: Content flagged as altered. Action: No blockchain anchor required. Storing incident in local cache."
 
     # === GOOGLE CLOUD PUB/SUB INTEGRATION ===
-    # Отправка события в шину данных (для аналитики или дальнейшей обработки)
-    if GCP_ENABLED:
+    # Отправка события в шину данных GCP
+    if PROJECT_ID:
+        TOPIC_PATH = publisher.topic_path(PROJECT_ID, "agent-verification-events")
         try:
             message_data = json.dumps({"hash": file_hash, "verdict": decision_result.decision}).encode("utf-8")
             publisher.publish(TOPIC_PATH, message_data)
         except Exception as e:
-            print(f"Pub/Sub mock error: {e}")
+            print(f"Pub/Sub push error: {e}")
 
     return JSONResponse({
         "status": "success",
