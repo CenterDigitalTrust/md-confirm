@@ -55,9 +55,6 @@ async def sign_content(file: UploadFile = File(...)):
     return JSONResponse({"status": "signed", "hash": file_hash})
 
 @app.post("/verify")
-async def verify_content(
-    file: UploadFile = File(None), 
-    is_original: bool = Form(False)
 async def verify_content(file: UploadFile = File(...), is_original: bool = Form(...)):
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
@@ -65,45 +62,62 @@ async def verify_content(file: UploadFile = File(...), is_original: bool = Form(
     # Проверяем, есть ли хеш в доверенной базе (Строго Firestore)
     is_in_db = await check_hash_in_db_async(file_hash)
     
-    # === AGENT 2: GEMINI VERIFIER (via Antigravity Node) ===
-    decision_result = analyze_provenance(
-        file_hash=file_hash,
-        is_in_db=is_in_db,
-        user_claims_original=is_original
-    )
+    # === AGENT 2: GEMINI VERIFIER ===
+    try:
+        verdict = analyze_provenance(
+            file_hash=file_hash,
+            is_in_db=is_in_db,
+            user_claims_original=is_original
+        )
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": f"Agent 2 (Gemini) failed: {str(e)}"}, status_code=500)
     
-    if not decision_result:
-        return JSONResponse({"status": "error", "message": "Agent 2 (Gemini) failed to analyze"}, status_code=500)
-    
-    # === AGENT 3: LEDGER NOTARY REASONING (SIMULATED) ===
+    # === AGENT 3: LEDGER NOTARY REASONING ===
+    # Agent 3 explicitly reasons about when to write to Solana
     ledger_agent_log = ""
     tx_id = None
     
-    if decision_result.decision.upper() == "VERIFIED":
-        ledger_agent_log = "Ledger Agent 3 Reasoning: High-priority immediate publication detected. Action: Bypassing Merkle queue. Flushing directly to GCUL (Solana mock)."
+    if verdict.decision == "original_confirmed":
+        # Simulating Merkle Tree pending hashes logic for Agent 3
+        pending_hashes_count = 101 # Simulated state (normally read from DB)
+        high_priority = True # Simulated news event
+        
+        from agent.workflow import handle_ledger_notary
         try:
-            tx_id = await anchor_receipt(file_hash, decision_result.decision)
+            flush_decision = await handle_ledger_notary(pending_hashes_count, high_priority)
+            ledger_agent_log = f"Ledger Notary Decision: {flush_decision.trigger}. Reason: {flush_decision.reason}"
+            
+            if flush_decision.flush_now:
+                # DENY BY DEFAULT policy overridden by explicitly verified status
+                tx_id = await anchor_receipt(file_hash, verdict.decision)
         except Exception as e:
-            print(f"Ошибка отправки в Solana: {e}")
+            ledger_agent_log = f"Ledger Notary Error: {str(e)}"
             tx_id = "error_solana_network"
-    elif decision_result.decision.upper() == "FLAGGED":
-        ledger_agent_log = "Ledger Agent 3 Reasoning: Content flagged as altered. Action: No blockchain anchor required. Storing incident in local cache."
+            
+    elif verdict.decision == "not_confirmed":
+        if verdict.needs_review:
+            ledger_agent_log = "Ledger Agent 3: Content not confirmed but claimed original -> NEEDS_REVIEW. No blockchain write."
+        else:
+            ledger_agent_log = "Ledger Agent 3: Normal unverified sharing. No blockchain write."
 
     # === GOOGLE CLOUD PUB/SUB INTEGRATION ===
-    # Отправка события в шину данных GCP
     if PROJECT_ID:
         TOPIC_PATH = publisher.topic_path(PROJECT_ID, "agent-verification-events")
         try:
-            message_data = json.dumps({"hash": file_hash, "verdict": decision_result.decision}).encode("utf-8")
+            message_data = json.dumps({"hash": file_hash, "verdict": verdict.decision}).encode("utf-8")
             publisher.publish(TOPIC_PATH, message_data)
         except Exception as e:
             print(f"Pub/Sub push error: {e}")
 
+    # Return structure for UI
+    # The frontend expects "agent_decision" = "VERIFIED" or "FLAGGED" for its logic
+    ui_decision = "VERIFIED" if verdict.decision == "original_confirmed" else "FLAGGED"
+
     return JSONResponse({
         "status": "success",
         "file_hash": file_hash,
-        "agent_decision": decision_result.decision,
-        "agent_reasoning": decision_result.reasoning,
+        "agent_decision": ui_decision, # Mapped for frontend compatibility
+        "agent_reasoning": verdict.reason,
         "ledger_agent_log": ledger_agent_log,
         "solana_tx_id": tx_id
     })
