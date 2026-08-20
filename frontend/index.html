@@ -94,7 +94,7 @@
             display: none; pointer-events: none; opacity: 0.95;
         }
         .watermark-verified { background: rgba(52, 168, 83, 0.9); }
-        .watermark-flagged { background: rgba(234, 67, 53, 0.9); }
+        /* Removed flagged watermark style */
 
         /* ARROWS AND ECOSYSTEM BRANCHES */
         .arrow { font-size: 3rem; color: #888; display: flex; align-items: center;}
@@ -183,9 +183,15 @@
                         <div id="watermark" class="watermark-overlay"></div>
                     </div>
 
-                    <div style="display:flex; align-items:center; gap: 8px; margin: 15px 0; font-size: 0.85rem; background: #f9f9f9; padding: 10px; border-radius:8px;">
-                        <input type="checkbox" id="is_original" checked>
-                        <label for="is_original" style="margin:0; cursor:pointer;">I claim THIS IS ORIGINAL!</label>
+                    <div style="display:flex; flex-direction:column; gap: 8px; margin: 15px 0; font-size: 0.85rem; background: #f9f9f9; padding: 10px; border-radius:8px;">
+                        <div style="display:flex; align-items:center; gap: 8px;">
+                            <input type="checkbox" id="is_original" checked>
+                            <label for="is_original" style="margin:0; cursor:pointer;">I claim THIS IS ORIGINAL!</label>
+                        </div>
+                        <div style="display:flex; align-items:center; gap: 8px;">
+                            <input type="checkbox" id="high_priority">
+                            <label for="high_priority" style="margin:0; cursor:pointer; color:#d32f2f;">🔥 High Priority (Breaking News)</label>
+                        </div>
                     </div>
                     <button type="submit" class="btn-green" id="verifyBtn" disabled style="opacity: 0.5;">Post to Feed</button>
                 </form>
@@ -193,7 +199,7 @@
             </div>
         </div>
 
-        <!-- ECOSYSTEM BRANCHES (Code omitted to focus on JS and Label changes below) -->
+        <!-- ECOSYSTEM BRANCHES -->
         <div class="ecosystem-branches">
             
             <div class="branch-card" style="border-left-color: #1da1f2;">
@@ -264,7 +270,17 @@
             formData.append('file', fileInputSign.files[0]);
             
             try {
-                const response = await fetch('/sign', { method: 'POST', body: formData });
+                // Pass the strict auth header defined in main.py
+                const response = await fetch('/sign', { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: {
+                        'X-Device-Attestation-Key': 'valid-hardware-key-123'
+                    }
+                });
+                
+                if (!response.ok) throw new Error("Unauthorized or server error");
+
                 const data = await response.json();
                 resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${data.hash.substring(0,15)}...</span>`;
                 
@@ -287,7 +303,7 @@
                 document.getElementById('verifyResult').style.display = 'none';
                 
             } catch (err) {
-                resDiv.innerHTML = `<span style="color:red">Error signing file.</span>`;
+                resDiv.innerHTML = `<span style="color:red">Error signing file. Device unauthorized.</span>`;
             }
         });
 
@@ -302,22 +318,23 @@
             const formData = new FormData();
             formData.append('file', document.getElementById('photoVerify').files[0]);
             formData.append('is_original', document.getElementById('is_original').checked);
+            formData.append('high_priority', document.getElementById('high_priority').checked);
             
             try {
                 const response = await fetch('/verify', { method: 'POST', body: formData });
                 const data = await response.json();
                 
-                // Visual watermark logic
-                watermark.style.display = 'block';
+                // Visual watermark logic (Only show if VERIFIED, hide if not_confirmed)
                 if (data.agent_decision && data.agent_decision.toUpperCase() === 'VERIFIED') {
+                    watermark.style.display = 'block';
                     watermark.className = 'watermark-overlay watermark-verified';
                     watermark.innerHTML = '✅ ORIGINAL';
                 } else {
-                    watermark.className = 'watermark-overlay watermark-flagged';
-                    watermark.innerHTML = '⚠️ TAMPERED / AI';
+                    // DO NOT SHOW TAMPERED OR FLAGGED. JUST HIDE.
+                    watermark.style.display = 'none';
                 }
 
-                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#ea4335'}">${data.agent_decision || 'ERROR'}</strong>`;
+                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#666'}">${data.agent_decision || 'ERROR'}</strong>`;
                 let txHtml = data.solana_tx_id ? `<br><a href="https://explorer.solana.com/tx/${data.solana_tx_id}?cluster=devnet" target="_blank" style="color:blue; font-size:0.75rem;">🔗 View Solana Tx</a>` : '';
 
                 resDiv.innerHTML = `

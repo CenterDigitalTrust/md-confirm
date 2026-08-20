@@ -26,7 +26,7 @@ class FlushDecision(BaseModel):
 def get_client():
     return genai.Client()
 
-def analyze_provenance(file_hash: str, is_in_db: bool, user_claims_original: bool) -> VerdictSchema:
+async def analyze_provenance(file_hash: str, is_in_db: bool, user_claims_original: bool) -> VerdictSchema:
     """
     Анализирует криптографические данные и принимает решение по схеме VerdictSchema.
     Не утверждает, что контент — подделка или ИИ, только original_confirmed/not_confirmed.
@@ -50,7 +50,7 @@ def analyze_provenance(file_hash: str, is_in_db: bool, user_claims_original: boo
     Return a structured JSON strictly matching the VerdictSchema.
     """
     
-    response = client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model='gemini-3.5-flash',
         contents=prompt,
         config={
@@ -84,7 +84,7 @@ async def handle_ledger_notary(pending_hashes_count: int, high_priority: bool) -
     Return a structured JSON strictly matching the FlushDecision schema.
     """
     
-    response = client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model='gemini-3.5-flash',
         contents=prompt,
         config={
