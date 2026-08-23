@@ -14,7 +14,7 @@ publisher = pubsub_v1.PublisherClient()
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 
 from agent.workflow import analyze_provenance, handle_ledger_notary
-from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed
+from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed, verify_anchor_onchain
 
 app = FastAPI(title="MD-Confirm Orchestrator")
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
@@ -82,11 +82,16 @@ async def verify_content(
     except Exception as e:
         return JSONResponse({"status": "error", "message": f"Agent 2 (Gemini) failed: {str(e)}"}, status_code=500)
     
+    if hashes_match is False:
+        verdict.decision = "not_confirmed"
+        verdict.reason = "CRITICAL: On-chain hash does NOT match Database record! Possible database tamper."
+        verdict.needs_review = True
+
     # === AGENT 3: LEDGER NOTARY REASONING ===
     ledger_agent_log = ""
-    tx_id = None
+    tx_id = existing_solana_tx_id
     
-    if verdict.decision == "original_confirmed":
+    if verdict.decision == "original_confirmed" and not existing_solana_tx_id:
         pending_hashes_count = await get_pending_merkle_count()
         
         try:

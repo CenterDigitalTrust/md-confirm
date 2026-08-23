@@ -1,48 +1,83 @@
-# MD-Confirm: Publish-Time Provenance Agent 🛡️
+# MD-Confirm — The Infrastructure of Truth 🛡️📸
 
-**A next-generation AI agent that survives content publication to combat deepfakes and protect society from disinformation.**
-*Built for the Google All Things Agentic Hackathon (Taskmaster Track).*
+Built for the **All things agentic hackathon** (Gemini + Google Cloud).
 
-## 🌍 The Scale & Societal Impact
-In the tidal wave of AI generation, MD-Confirm is not just a tool—it is the ultimate shield against deepfakes and mass disinformation. The scale of this solution applies directly to high-stakes global sectors:
-* **Law Enforcement & Courts:** Ensuring the absolute truthfulness and chain of custody for digital evidence. A cryptographically anchored photo cannot be disputed.
-* **Journalism & Mass Media:** Allowing news organizations to cryptographically prove the authenticity of their field reporting, ensuring public trust in correctly presented information.
-* **Public Protection:** Immediately protecting ordinary users from falling victim to AI-generated scams, fake news, and manipulated media.
+**MD-Confirm** is an autonomous fleet of AI agents designed to establish an unbreakable chain of custody for digital media. By combining invisible cryptographic watermarking, Gemini 3.5 Flash vision-reasoning, and immutable Solana blockchain anchoring, our agentic fleet autonomously verifies the authenticity of any image.
 
-## 🚀 The Problem
-Modern cameras (like Google Pixel) embed cryptographic C2PA signatures (and physical sensor PRNU noise) to prove an image is real. **However, social media platforms strip this metadata upon upload.** Once published, the proof of authenticity is dead.
+## 🏆 Track: The Fortified Enterprise Fleet
+MD-Confirm deploys a network of institutional agents (Watermark Engine, AI Verifier, and Ledger Notary) that safely maintain state via Google Firestore and interact with production data and public blockchains without violating zero-trust policies.
 
-## 💡 The Solution
-MD-Confirm is an autonomous multi-step agent that sits between the camera and the network. 
-When a user clicks "Share", the agent:
-1. Verifies the hardware signature (sensor noise).
-2. Uses **Gemini 3.5 Flash** to reason about the image's authenticity.
-3. **Anchors the receipt to a blockchain (Solana)**, creating an indestructible proof of originality.
+## 🏗️ Architecture
 
-## ⚙️ Architecture & Tech Stack (GCP Native)
-* **Agent 1 (Edge Orchestrator):** Hardware-level PRNU extraction & SHA-256 signing.
-* **Agent 2 (Verifier):** Gemini 3.5 Flash for contextual reasoning and logic verification.
-* **Agent 3 (Ledger Notary):** Autonomous reasoning agent managing Merkle trees.
-* **Orchestration Framework:** Antigravity (AGY) Agentic Framework pattern.
-* **Google Cloud Infrastructure (Mandatory Stack):** 
-  * `Cloud Firestore` (Immutable hash storage & Merkle tree queuing)
-  * `Cloud Pub/Sub` (Asynchronous event streaming from edge devices)
-  * `Cloud Run` (Serverless backend hosting)
-* **Backend:** FastAPI (Python)
-* **Blockchain Anchor:** Solana Devnet (transitioning to GCUL)
-* **Frontend:** Vanilla JS / HTML5
+```text
+[ Camera/Client ] 
+       │ (1. Uploads Image)
+       ▼
+┌────────────────────────────────────────────────────────┐
+│ MD-Confirm Agentic Gateway (FastAPI)                   │
+├─────────────────────────┬──────────────────────────────┤
+│ 🕵️ Agent 1:            │ 📝 Agent 3:                  │
+│ Steganography Engine    │ Ledger Notary                │
+│ (Embeds ID & ECC)       │ (Anchors state to chain)     │
+└──────┬──────────────────┴───────────────┬──────────────┘
+       │                                  │
+       ▼ (2. Stores State)                ▼ (3. Anchors Hash)
+[ ☁️ Google Cloud Firestore]      [ 🔗 Solana Blockchain ]
+       │                                  │
+       │ (4. Fetches State)               │ (5. Verifies Hash)
+       ▼                                  ▼
+┌────────────────────────────────────────────────────────┐
+│ 🧠 Agent 2: Gemini Verifier (Gemini 3.5 Flash)         │
+│ Evaluates pHash drift, visual tampering, and cross-    │
+│ checks Firestore data against Solana on-chain data.    │
+└─────────────────────────┬──────────────────────────────┘
+                          │ (6. Autonomous Verdict)
+                          ▼
+             [ 🟢 VERIFIED / 🔴 TAMPERED ]
+```
 
-## 🏃‍♂️ How to Run Locally
-1. `python -m venv venv`
-2. `.\venv\Scripts\activate`
-3. `pip install -r requirements.txt`
-4. Add `GEMINI_API_KEY="your_key"` to a `.env` file.
-5. `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload`
+## 🛠️ Tech Stack
+* **AI Model:** Gemini 3.5 Flash (via Google GenAI SDK)
+* **Google Cloud:** Firestore (Agent Memory Bank)
+* **Blockchain:** Solana Devnet (solana-py, solders)
+* **Backend:** FastAPI (Python 3.10+)
+* **Computer Vision:** opencv-python, imagehash, invisible-watermark
 
-## 🔮 Strategic Vision & Google Crypto Integration
-While this MVP uses Solana for demonstration, the production architecture is natively designed for the Google Ecosystem:
-* **Google Pixel Hardware Crypto:** Future iterations will utilize the native Titan M2 chip in Google Pixel phones to securely sign the hashes at the hardware level, making spoofing physically impossible.
-* **Google Cloud Universal Ledger (GCUL):** Instead of public blockchains, Agent 3 will anchor Merkle Roots directly into Google's enterprise ledger (GCUL). This guarantees 100% data sovereignty, zero gas fees for the end-user, and instant global verification across all platforms (Android, Chrome, Google Search).
-* **Agent 3 (Ledger Notary) Logic:** This is not a simple API call. Agent 3 is a reasoning agent that evaluates network traffic and urgency, deciding autonomously whether to queue hashes in a local Merkle Tree (offline/low-priority mode) or flush them immediately to GCUL (high-priority mode). 
+## 🚀 Spin-up Instructions
 
-We are building the fault-tolerant infrastructure of truth for the AI era.
+### 1. Prerequisites
+* Python 3.10+
+* Google Cloud Project with **Firestore** enabled.
+* Gemini API Key.
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/md-confirm.git
+cd md-confirm
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. Configuration
+1. Create a `.env` file in the root directory:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+X_DEVICE_ATTESTATION_KEY=valid-hardware-key-123
+```
+2. Place your Google Cloud Service Account JSON key in the `env/` folder and name it `firestore-key.json`.
+3. (Optional) Generate a Solana Devnet wallet in `blockchain/devnet_wallet.json` and fund it with Devnet SOL for on-chain anchoring.
+
+### 4. Run the Agentic Fleet
+```bash
+python -m uvicorn api.main:app --reload --port 8000
+```
+Open your browser and navigate to `http://localhost:8000`. 
+1. Upload an image to "Snap & Sign".
+2. Download the watermarked result.
+3. Upload it to the "Verify" tab to see the agents in action!

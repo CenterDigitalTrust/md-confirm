@@ -1,18 +1,23 @@
-# Виртуальное окружение
-venv/
-env/
+# Environments
 .env
+env/
+venv/
+ENV/
 
-# Кэш Python
+# Keys and Secrets
+blockchain/devnet_wallet.json
+firestore-key.json
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
 
-# Секретные ключи блокчейна и локальная БД
-devnet_wallet.json
-db.json
-
-# Системные файлы
-.DS_Store
-Thumbs.db
+# Media and Test files
+*.jpg
+*.png
+*.pdf
+media_*
+scratch/
+patch*.py
+sign_out.json
+e2e_out.txt

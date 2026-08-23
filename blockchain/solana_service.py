@@ -6,6 +6,7 @@ from solana.rpc.async_api import AsyncClient
 from solders.instruction import Instruction
 from solders.message import Message
 from solders.transaction import VersionedTransaction
+from solders.signature import Signature
 
 # Адрес Memo-программы в сети Solana (стандартный)
 MEMO_PROGRAM_ID = Pubkey.from_string("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
@@ -60,3 +61,40 @@ async def anchor_receipt(image_hash: str, decision: str) -> str:
         tx = VersionedTransaction(msg, [wallet])
         response = await client.send_transaction(tx)
         return str(response.value)
+
+from solders.signature import Signature
+async def verify_anchor_onchain(tx_id: str) -> str:
+    from solana.rpc.async_api import AsyncClient
+    async with AsyncClient("https://api.devnet.solana.com") as client:
+        try:
+            sig = Signature.from_string(tx_id)
+            tx_response = await client.get_transaction(sig, encoding="jsonParsed", max_supported_transaction_version=0)
+            if not tx_response or not tx_response.value:
+                return None
+            message = tx_response.value.transaction.transaction.message
+            for ix in message.instructions:
+                if str(ix.program_id) == str(MEMO_PROGRAM_ID):
+                    memo_str = ""
+                    if hasattr(ix, 'parsed') and ix.parsed:
+                        memo_str = ix.parsed
+                    elif hasattr(ix, 'data'):
+                        try:
+                            memo_str = str(ix.parsed) if hasattr(ix, 'parsed') else str(ix.data)
+                        except:
+                            pass
+                    if not memo_str and type(ix).__name__ == "UiPartiallyDecodedInstruction":
+                        import base58
+                        try:
+                            memo_str = base58.b58decode(ix.data).decode('utf-8')
+                        except:
+                            memo_str = str(ix.data)
+                    if not memo_str and hasattr(ix, 'parsed'):
+                         memo_str = str(ix.parsed)
+                    if isinstance(memo_str, str):
+                        if "Hash: " in memo_str:
+                            parts = memo_str.split("Hash: ")
+                            if len(parts) > 1:
+                                return parts[1].split(" |")[0].strip()
+            return None
+        except Exception as e:
+            return None
