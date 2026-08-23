@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MD-Confirm: The Infrastructure of Truth</title>
+    <title>MD-Confirm: The Anti-Fake Ecosystem</title>
     <style>
         body { 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
@@ -261,15 +261,28 @@
             const verifyBtn = document.getElementById('verifyBtn');
             const noPhotoText = document.getElementById('noPhotoText');
             
-            resDiv.style.display = 'block'; resDiv.innerHTML = 'Signing hash (Hardware Simulator)...';
+            resDiv.style.display = 'block'; resDiv.innerHTML = 'Signing hash (Antigravity Orchestrator)...';
             
             const fileInputSign = document.getElementById('photoSign');
             const fileInputVerify = document.getElementById('photoVerify');
             
-            // SIMULATION LOGIC: Wait 1 second then success
-            setTimeout(() => {
-                const mockHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
-                resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${mockHash.substring(0,15)}...</span>`;
+            const formData = new FormData();
+            formData.append('file', fileInputSign.files[0]);
+            
+            try {
+                // Pass the strict auth header defined in main.py
+                const response = await fetch('/sign', { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: {
+                        'X-Device-Attestation-Key': 'valid-hardware-key-123'
+                    }
+                });
+                
+                if (!response.ok) throw new Error("Unauthorized or server error");
+
+                const data = await response.json();
+                resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${data.hash.substring(0,15)}...</span>`;
                 
                 // AUTO-TRANSFER TO SOCIAL NETWORK
                 const dataTransfer = new DataTransfer();
@@ -288,7 +301,10 @@
                 verifyBtn.style.opacity = '1';
                 document.getElementById('watermark').style.display = 'none'; // reset
                 document.getElementById('verifyResult').style.display = 'none';
-            }, 1200);
+                
+            } catch (err) {
+                resDiv.innerHTML = `<span style="color:red">Error signing file. Device unauthorized.</span>`;
+            }
         });
 
         document.getElementById('verifyForm').addEventListener('submit', async (e) => {
@@ -299,50 +315,37 @@
             resDiv.style.display = 'block'; resDiv.innerHTML = 'Agent 2 (Verifier) & Agent 3 (Notary) analyzing... ⏳';
             watermark.style.display = 'none';
             
-            const isHighPriority = document.getElementById('high_priority').checked;
-            const isOriginal = document.getElementById('is_original').checked;
+            const formData = new FormData();
+            formData.append('file', document.getElementById('photoVerify').files[0]);
+            formData.append('is_original', document.getElementById('is_original').checked);
+            formData.append('high_priority', document.getElementById('high_priority').checked);
             
-            // SIMULATION LOGIC: Wait 2 seconds for "agents" to respond
-            setTimeout(() => {
-                let data = {};
-                
-                if (isOriginal) {
-                    data = {
-                        agent_decision: "VERIFIED",
-                        agent_reasoning: "Cryptographic hash matches the on-device ledger perfectly.",
-                        ledger_agent_log: isHighPriority 
-                            ? "Ledger Notary Decision: high_priority. Reason: Breaking news detected, forced immediate flush to blockchain." 
-                            : "Ledger Notary Decision: count_threshold. Reason: 105 hashes pending, optimal gas conditions met.",
-                        solana_tx_id: "5Xo9" + Math.random().toString(36).substring(2, 10) + "FakeTxForDemo"
-                    };
-                } else {
-                    data = {
-                        agent_decision: "NOT_CONFIRMED",
-                        agent_reasoning: "Hash not found in ledger. Normal unverified sharing.",
-                        ledger_agent_log: "Ledger Agent 3: Normal unverified sharing.",
-                        solana_tx_id: null
-                    };
-                }
+            try {
+                const response = await fetch('/verify', { method: 'POST', body: formData });
+                const data = await response.json();
                 
                 // Visual watermark logic (Only show if VERIFIED, hide if not_confirmed)
-                if (data.agent_decision === 'VERIFIED') {
+                if (data.agent_decision && data.agent_decision.toUpperCase() === 'VERIFIED') {
                     watermark.style.display = 'block';
                     watermark.className = 'watermark-overlay watermark-verified';
                     watermark.innerHTML = '✅ ORIGINAL';
                 } else {
+                    // DO NOT SHOW TAMPERED OR FLAGGED. JUST HIDE.
                     watermark.style.display = 'none';
                 }
 
-                let decisionHtml = `<strong style="color:${data.agent_decision === 'VERIFIED' ? '#34a853' : '#666'}">${data.agent_decision}</strong>`;
-                let txHtml = data.solana_tx_id ? `<br><a href="https://explorer.solana.com/" target="_blank" style="color:blue; font-size:0.75rem;">🔗 View Solana Tx</a>` : '';
+                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#666'}">${data.agent_decision || 'ERROR'}</strong>`;
+                let txHtml = data.solana_tx_id ? `<br><a href="https://explorer.solana.com/tx/${data.solana_tx_id}?cluster=devnet" target="_blank" style="color:blue; font-size:0.75rem;">🔗 View Solana Tx</a>` : '';
 
                 resDiv.innerHTML = `
                     Verdict: ${decisionHtml}<br>
-                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> ${data.agent_reasoning}</span><br>
-                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> ${data.ledger_agent_log}</span>
+                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> ${data.agent_reasoning || 'N/A'}</span><br>
+                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> ${data.ledger_agent_log || 'N/A'}</span>
                     ${txHtml}
                 `;
-            }, 2000);
+            } catch (err) {
+                resDiv.innerHTML = `<span style="color:red">Error during verification.</span>`;
+            }
         });
     </script>
 </body>
