@@ -21,7 +21,8 @@ async def analyze_provenance(
     user_claims_original: bool,
     phash_distance: int = None,
     prnu_confidence: float = None,
-    hashes_match: bool = None
+    hashes_match: bool = None,
+    file_hash: str = None
 ) -> VerdictSchema:
     client = get_client()
     

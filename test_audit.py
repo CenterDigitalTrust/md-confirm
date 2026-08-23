@@ -8,8 +8,11 @@ async def main():
     print("PROOF 3: VerdictSchema Typing and Execution")
     print("==================================================")
     try:
-        # Sync call
-        result = analyze_provenance(file_hash="test_hash_123", is_in_db=True, user_claims_original=True)
+        result = await analyze_provenance(
+            is_in_db=True, user_claims_original=True,
+            phash_distance=2, prnu_confidence=0.98, hashes_match=True,
+            file_hash="test_hash_123"
+        )
         print("1. Raw result object:", result)
         print("2. Type of result:", type(result))
         print("3. Pydantic model_dump():", result.model_dump())
@@ -22,7 +25,6 @@ async def main():
     print("PROOF 4: Agent 3 (Ledger Notary) Gemini Call")
     print("==================================================")
     try:
-        # Async call (Ledger Notary sub-agent)
         result2 = await handle_ledger_notary(pending_hashes_count=101, high_priority=False)
         print("1. Raw result object:", result2)
         print("2. Type of result:", type(result2))

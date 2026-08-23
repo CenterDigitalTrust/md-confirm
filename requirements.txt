@@ -2,10 +2,23 @@ fastapi
 uvicorn
 google-genai
 solana
+solders
 c2pa-python
 python-multipart
 jinja2
 pydantic
+python-dotenv
 
+# Google Cloud
 google-cloud-firestore
 google-cloud-pubsub
+
+# Computer Vision & Watermarking
+opencv-python-headless
+imagehash
+invisible-watermark
+reedsolo
+Pillow
+
+# Blockchain
+base58

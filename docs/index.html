@@ -126,10 +126,10 @@
                 btnDownload.style.display = 'block';
 
                 const mockHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
-                document.getElementById('resSign').innerHTML = 
+                document.getElementById('resSign').innerHTML = `
                     <strong style="color:#1a73e8">Signed securely!</strong><br>
-                    <span style="font-size:0.75rem">ID: ...</span>
-                ;
+                    <span style="font-size:0.75rem">ID: ${mockHash.substring(0,16)}...</span>
+                `;
             }, 1200);
         }
 
@@ -152,14 +152,14 @@
                 let color = isOriginal ? "#34a853" : "#d93025";
                 let txId = "5Xo9" + Math.random().toString(36).substring(2, 10) + "DemoTx";
                 
-                document.getElementById('resVerify').innerHTML = 
-                    <strong style="color:; font-size:1.2rem;"></strong><br>
+                document.getElementById('resVerify').innerHTML = `
+                    <strong style="color:${color}; font-size:1.2rem;">${decision}</strong><br>
                     <hr style="margin:5px 0; border-top:1px solid #ccc;">
                     <span style="font-size:0.8rem"><b>On-Chain Match:</b> TRUE</span><br>
                     <a href="https://explorer.solana.com/" target="_blank" style="font-size:0.75rem; color:#1a73e8;">View Solana Ledger</a><br><br>
                     <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> The extracted cryptographic hash and PRNU fingerprint perfectly match the immutable on-chain record. No tampering detected.</span><br>
-                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> </span>
-                ;
+                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> Batch flush triggered. TX: ${txId}</span>
+                `;
             }, 1800);
         }
     </script>
