@@ -4,8 +4,8 @@ Built for the **All things agentic hackathon** (Gemini + Google Cloud).
 
 **MD-Confirm** is an autonomous fleet of AI agents designed to establish an unbreakable chain of custody for digital media. By combining invisible cryptographic watermarking, Gemini 3.5 Flash vision-reasoning, and immutable Solana blockchain anchoring, our agentic fleet autonomously verifies the authenticity of any image.
 
-## 🏆 Track: The Fortified Enterprise Fleet
-MD-Confirm deploys a network of institutional agents (Watermark Engine, AI Verifier, and Ledger Notary) that safely maintain state via Google Firestore and interact with production data and public blockchains without violating zero-trust policies.
+## 🏆 Track: The Taskmaster
+MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it takes the messy, multi-step chore of visual forensics and handles it end-to-end: automatically signing images at capture, managing zero-trust state via Google Firestore, and triggering a reasoning agent to analyze and anchor proofs on a public blockchain.
 
 ## 🏗️ Architecture
 
@@ -17,8 +17,8 @@ MD-Confirm deploys a network of institutional agents (Watermark Engine, AI Verif
 │ MD-Confirm Agentic Gateway (FastAPI)                   │
 ├─────────────────────────┬──────────────────────────────┤
 │ 🕵️ Agent 1:            │ 📝 Agent 3:                  │
-│ Steganography Engine    │ Ledger Notary                │
-│ (Embeds ID & ECC)       │ (Anchors state to chain)     │
+│ Capture Signature Sim   │ Ledger Notary                │
+│ (Hardware attestation)  │ (Anchors state to chain)     │
 └──────┬──────────────────┴───────────────┬──────────────┘
        │                                  │
        ▼ (2. Stores State)                ▼ (3. Anchors Hash)
@@ -28,8 +28,8 @@ MD-Confirm deploys a network of institutional agents (Watermark Engine, AI Verif
        ▼                                  ▼
 ┌────────────────────────────────────────────────────────┐
 │ 🧠 Agent 2: Gemini Verifier (Gemini 3.5 Flash)         │
-│ Evaluates pHash drift, visual tampering, and cross-    │
-│ checks Firestore data against Solana on-chain data.    │
+│ Evaluates image integrity, handles provenance checks,  │
+│ and cross-references Firestore vs Solana data.         │
 └─────────────────────────┬──────────────────────────────┘
                           │ (6. Autonomous Verdict)
                           ▼
@@ -68,7 +68,7 @@ pip install -r requirements.txt
 1. Create a `.env` file in the root directory:
 ```env
 GEMINI_API_KEY=your_gemini_api_key
-X_DEVICE_ATTESTATION_KEY=valid-hardware-key-123
+X_DEVICE_ATTESTATION_KEY=your_secret_key_here
 ```
 2. Place your Google Cloud Service Account JSON key in the `env/` folder and name it `firestore-key.json`.
 3. (Optional) Generate a Solana Devnet wallet in `blockchain/devnet_wallet.json` and fund it with Devnet SOL for on-chain anchoring.
