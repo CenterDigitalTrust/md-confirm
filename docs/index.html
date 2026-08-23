@@ -3,350 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MD-Confirm: The Anti-Fake Ecosystem</title>
+    <title>MD-Confirm: The Infrastructure of Truth</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            color: #333; margin: 0; padding: 2rem; 
-            min-height: 100vh;
-        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #333; margin: 0; padding: 2rem; min-height: 100vh; }
         .header-title { text-align: center; margin-bottom: 3rem; }
         .header-title h1 { color: #1a73e8; font-size: 2.5rem; margin: 0; }
         .header-title p { font-size: 1.2rem; color: #555; }
-
-        .demo-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 3rem;
-            flex-wrap: wrap;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* SMARTPHONE MOCKUP (Google Pixel Style) */
-        .pixel-phone {
-            width: 320px;
-            height: 650px;
-            border: 12px solid #202124;
-            border-radius: 40px;
-            background: #fff;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        /* Top Notch / Camera hole */
-        .pixel-phone::before {
-            content: '';
-            position: absolute;
-            top: 15px; left: 50%; transform: translateX(-50%);
-            width: 12px; height: 12px;
-            background: #111; border-radius: 50%;
-            z-index: 10;
-        }
-        
-        .app-header {
-            background: #1a73e8; color: white;
-            padding: 20px 15px 15px; text-align: center;
-            font-weight: bold; font-size: 1.1rem;
-        }
-        .app-header.censor { background: #34a853; }
-        
-        .app-body { padding: 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;}
-        
-        .form-group { margin-bottom: 10px; }
-        input[type="file"] { width: 90%; font-size: 0.85rem; }
-        
-        button { 
-            background: #1a73e8; color: white; border: none; 
-            padding: 12px; font-size: 1rem; border-radius: 20px; 
-            cursor: pointer; width: 100%; transition: 0.2s;
-            font-weight: bold;
-        }
-        button:hover { background: #1557b0; }
-        button.btn-green { background: #34a853; }
-        button.btn-green:hover { background: #2b8c46; }
-
-        .result { padding: 10px; border-radius: 8px; background: #f0f2f5; font-size: 0.85rem; word-wrap: break-word; display: none;}
-        
-        /* Image Preview & Watermark */
-        .image-container { position: relative; width: 100%; text-align: center; }
-        .image-preview { width: 100%; border-radius: 12px; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
-        
-        /* Custom File Input to force English text */
-        .custom-file-upload { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .custom-file-btn {
-            background: #f1f3f4; color: #333; border: 1px solid #dadce0; 
-            padding: 10px; border-radius: 8px; cursor: pointer; text-align: center;
-            font-weight: bold; font-size: 0.9rem; transition: background 0.2s;
-        }
-        .custom-file-btn:hover { background: #e8eaed; }
-        .file-name-display { font-size: 0.8rem; color: #666; text-align: center; font-style: italic; }
-
-        .watermark-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
-            color: white; padding: 10px 15px; font-weight: 900; border-radius: 8px;
-            font-size: 24px; text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 3px solid white;
-            display: none; pointer-events: none; opacity: 0.95;
-        }
-        .watermark-verified { background: rgba(52, 168, 83, 0.9); }
-        /* Removed flagged watermark style */
-
-        /* ARROWS AND ECOSYSTEM BRANCHES */
-        .arrow { font-size: 3rem; color: #888; display: flex; align-items: center;}
-        
-        .ecosystem-branches {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .branch-card {
-            background: white; padding: 15px 20px; border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-            display: flex; align-items: center; gap: 15px;
-            width: 280px; position: relative;
-            border-left: 5px solid #1a73e8;
-            transition: transform 0.2s;
-        }
-        .branch-card:hover { transform: translateX(10px); }
-        
-        /* The connecting lines from the phone to the branches */
-        .branch-card::before {
-            content: ''; position: absolute;
-            left: -40px; top: 50%; width: 40px; height: 3px;
-            background: #aaa; z-index: -1;
-        }
-
-        .branch-icon { font-size: 2.5rem; }
-        .branch-text h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #222; }
-        .branch-text p { margin: 0; font-size: 0.85rem; color: #666; }
-
+        .demo-container { display: flex; justify-content: center; }
+        .phone-mockup { background: #fff; width: 375px; height: 812px; border-radius: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 8px solid #333; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 150px; height: 25px; background: #333; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; }
+        .app-header { background: #1a73e8; color: white; padding: 2.5rem 1rem 1rem; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .tabs { display: flex; background: #f1f3f4; border-bottom: 1px solid #ddd; }
+        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: 500; color: #5f6368; }
+        .tab.active { color: #1a73e8; border-bottom: 2px solid #1a73e8; }
+        .content { padding: 20px; flex: 1; overflow-y: auto; }
+        .file-input-wrapper { background: #e8f0fe; border: 2px dashed #1a73e8; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px; }
+        .file-input-wrapper input[type="file"] { display: none; }
+        .file-input-wrapper:hover { background: #d2e3fc; }
+        .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: background 0.3s; }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-primary:hover { background: #1557b0; }
+        .btn-download { background: #34a853; color: white; text-decoration: none; text-align: center; display: none; }
+        .btn-download:hover { background: #28803e; }
+        .result-box { background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-top: 20px; font-family: monospace; font-size: 0.9rem; word-wrap: break-word; display: none; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1a73e8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .checkbox-container { display: flex; align-items: center; margin-bottom: 15px; font-size: 0.9rem; }
+        .checkbox-container input { margin-right: 10px; }
     </style>
 </head>
 <body>
-
     <div class="header-title">
         <h1>MD-Confirm: The Infrastructure of Truth</h1>
-        <p>From Camera Sensor to Global Ecosystem Verification</p>
+        <p>From Camera Sensor to Global Ecosystem Verification (GitHub Pages Demo)</p>
     </div>
 
     <div class="demo-container">
-        
-        <!-- PHONE 1: EDGE CAMERA -->
-        <div class="pixel-phone">
-            <div class="app-header">
-                📸 Pixel Camera Pro
+        <div class="phone-mockup">
+            <div class="notch"></div>
+            <div class="app-header">MD-Confirm UI</div>
+            <div class="tabs">
+                <div class="tab active" id="tab-sign" onclick="switchTab('sign')">?? Snap & Sign</div>
+                <div class="tab" id="tab-verify" onclick="switchTab('verify')">??? Verify</div>
             </div>
-            <div class="app-body">
-                <p style="font-size: 0.9rem; color:#555;">Takes photo, extracts sensor noise, and hardware-signs the SHA-256 hash to local ledger.</p>
+
+            <!-- SIGN TAB -->
+            <div class="content" id="content-sign">
+                <p style="font-size: 0.9rem; color: #666; margin-top:0;">Takes photo, extracts sensor noise, and hardware-signs the SHA-256 hash to local ledger.</p>
+                <label class="file-input-wrapper">
+                    <input type="file" id="photoSign" accept="image/*">
+                    <span id="signFileName">?? Browse Image...</span>
+                </label>
+                <button class="btn btn-primary" id="btnSign" onclick="mockSign()">Snap & Sign ?</button>
+                <div class="spinner" id="spinSign"></div>
                 
-                <form id="signForm">
-                    <div class="custom-file-upload">
-                        <label for="photoSign" class="custom-file-btn">📁 Browse Image...</label>
-                        <input type="file" id="photoSign" required accept="image/*" style="display: none;">
-                        <div id="fileNameSign" class="file-name-display">No file chosen</div>
-                    </div>
-                    <button type="submit">Snap & Sign</button>
-                </form>
+                <a href="#" id="btnDownload" class="btn btn-download" download="watermarked.jpg">? Download Signed Image</a>
                 
-                <div class="image-container">
-                    <img id="cameraPreview" class="image-preview" src="" alt="Camera View">
+                <div class="result-box" id="resSign"></div>
+            </div>
+
+            <!-- VERIFY TAB -->
+            <div class="content" id="content-verify" style="display: none;">
+                <p style="font-size: 0.9rem; color: #666; margin-top:0;">Uploads image. Agent verifies integrity against ledger before publication.</p>
+                <label class="file-input-wrapper">
+                    <input type="file" id="photoVerify" accept="image/*">
+                    <span id="verifyFileName">?? Browse Image...</span>
+                </label>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="is_original" checked>
+                    <label for="is_original">I claim THIS IS ORIGINAL!</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="high_priority">
+                    <label for="high_priority" style="color: #d93025; font-weight:bold;">?? High Priority (Breaking News)</label>
                 </div>
 
-                <div id="signResult" class="result"></div>
+                <button class="btn btn-primary" id="btnVerify" onclick="mockVerify()">Verify Integrity ??</button>
+                <div class="spinner" id="spinVerify"></div>
+                <div class="result-box" id="resVerify"></div>
             </div>
         </div>
-
-        <div class="arrow">➔</div>
-
-        <!-- PHONE 2: SOCIAL NETWORK -->
-        <div class="pixel-phone">
-            <div class="app-header censor">
-                🌐 Social Media App
-            </div>
-            <div class="app-body">
-                <p style="font-size: 0.9rem; color:#555;">Uploads image. Agent verifies integrity against ledger before publication.</p>
-                
-                <form id="verifyForm">
-                    <div class="form-group" style="display:none;">
-                        <input type="file" id="photoVerify" required accept="image/*">
-                    </div>
-                    
-                    <div class="image-container">
-                        <!-- Placeholder until photo comes -->
-                        <div id="noPhotoText" style="padding: 40px 0; color: #aaa; border: 2px dashed #ccc; border-radius: 10px;">Waiting for upload...</div>
-                        <img id="imgPreview" class="image-preview" src="" alt="Preview">
-                        <div id="watermark" class="watermark-overlay"></div>
-                    </div>
-
-                    <div style="display:flex; flex-direction:column; gap: 8px; margin: 15px 0; font-size: 0.85rem; background: #f9f9f9; padding: 10px; border-radius:8px;">
-                        <div style="display:flex; align-items:center; gap: 8px;">
-                            <input type="checkbox" id="is_original" checked>
-                            <label for="is_original" style="margin:0; cursor:pointer;">I claim THIS IS ORIGINAL!</label>
-                        </div>
-                        <div style="display:flex; align-items:center; gap: 8px;">
-                            <input type="checkbox" id="high_priority">
-                            <label for="high_priority" style="margin:0; cursor:pointer; color:#d32f2f;">🔥 High Priority (Breaking News)</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-green" id="verifyBtn" disabled style="opacity: 0.5;">Post to Feed</button>
-                </form>
-                <div id="verifyResult" class="result"></div>
-            </div>
-        </div>
-
-        <!-- ECOSYSTEM BRANCHES -->
-        <div class="ecosystem-branches">
-            
-            <div class="branch-card" style="border-left-color: #1da1f2;">
-                <div class="branch-icon">🌐</div>
-                <div class="branch-text">
-                    <h3>Social Networks</h3>
-                    <p>Zero deepfakes. Guaranteed trust in news feeds.</p>
-                </div>
-            </div>
-
-            <div class="branch-card" style="border-left-color: #ea4335;">
-                <div class="branch-icon">📸</div>
-                <div class="branch-text">
-                    <h3>Journalism</h3>
-                    <p>Cryptographically proven field reporting for media.</p>
-                </div>
-            </div>
-
-            <div class="branch-card" style="border-left-color: #8B4513;">
-                <div class="branch-icon">⚖️</div>
-                <div class="branch-text">
-                    <h3>Courts & Law</h3>
-                    <p>Unbreakable chain of custody for digital evidence.</p>
-                </div>
-            </div>
-
-            <div class="branch-card" style="border-left-color: #34a853;">
-                <div class="branch-icon">🚗</div>
-                <div class="branch-text">
-                    <h3>Insurance Claims</h3>
-                    <p>Fraud prevention with verified crash scene photos.</p>
-                </div>
-            </div>
-
-        </div>
-
     </div>
 
     <script>
-        // Preview image in Camera App and update file name
+        function switchTab(tab) {
+            document.getElementById('tab-sign').classList.remove('active');
+            document.getElementById('tab-verify').classList.remove('active');
+            document.getElementById('content-sign').style.display = 'none';
+            document.getElementById('content-verify').style.display = 'none';
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('content-' + tab).style.display = 'block';
+        }
+
         document.getElementById('photoSign').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const fileNameDisplay = document.getElementById('fileNameSign');
-            
-            if (file) {
-                fileNameDisplay.textContent = file.name;
-                const url = URL.createObjectURL(file);
-                const img = document.getElementById('cameraPreview');
-                img.src = url;
-                img.style.display = 'block';
-            } else {
-                fileNameDisplay.textContent = 'No file chosen';
-            }
+            if(e.target.files[0]) document.getElementById('signFileName').textContent = e.target.files[0].name;
         });
 
-        document.getElementById('signForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const resDiv = document.getElementById('signResult');
-            const verifyBtn = document.getElementById('verifyBtn');
-            const noPhotoText = document.getElementById('noPhotoText');
-            
-            resDiv.style.display = 'block'; resDiv.innerHTML = 'Signing hash (Antigravity Orchestrator)...';
-            
-            const fileInputSign = document.getElementById('photoSign');
-            const fileInputVerify = document.getElementById('photoVerify');
-            
-            const formData = new FormData();
-            formData.append('file', fileInputSign.files[0]);
-            
-            try {
-                // Pass the strict auth header defined in main.py
-                const response = await fetch('/sign', { 
-                    method: 'POST', 
-                    body: formData,
-                    headers: {
-                        'X-Device-Attestation-Key': 'valid-hardware-key-123'
-                    }
-                });
-                
-                if (!response.ok) throw new Error("Unauthorized or server error");
-
-                const data = await response.json();
-                resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${data.hash.substring(0,15)}...</span>`;
-                
-                // AUTO-TRANSFER TO SOCIAL NETWORK
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(fileInputSign.files[0]);
-                fileInputVerify.files = dataTransfer.files;
-                
-                // Show in Social App
-                const url = URL.createObjectURL(fileInputSign.files[0]);
-                const img = document.getElementById('imgPreview');
-                img.src = url;
-                img.style.display = 'block';
-                noPhotoText.style.display = 'none';
-                
-                // Enable Post button
-                verifyBtn.disabled = false;
-                verifyBtn.style.opacity = '1';
-                document.getElementById('watermark').style.display = 'none'; // reset
-                document.getElementById('verifyResult').style.display = 'none';
-                
-            } catch (err) {
-                resDiv.innerHTML = `<span style="color:red">Error signing file. Device unauthorized.</span>`;
-            }
+        document.getElementById('photoVerify').addEventListener('change', function(e) {
+            if(e.target.files[0]) document.getElementById('verifyFileName').textContent = e.target.files[0].name;
         });
 
-        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const resDiv = document.getElementById('verifyResult');
-            const watermark = document.getElementById('watermark');
+        // SIMULATED LOGIC FOR GITHUB PAGES HTML
+        function mockSign() {
+            const file = document.getElementById('photoSign').files[0];
+            if (!file) { alert("Please select an image first!"); return; }
             
-            resDiv.style.display = 'block'; resDiv.innerHTML = 'Agent 2 (Verifier) & Agent 3 (Notary) analyzing... ⏳';
-            watermark.style.display = 'none';
+            document.getElementById('btnSign').style.display = 'none';
+            document.getElementById('spinSign').style.display = 'block';
+            document.getElementById('resSign').style.display = 'none';
+            document.getElementById('btnDownload').style.display = 'none';
             
-            const formData = new FormData();
-            formData.append('file', document.getElementById('photoVerify').files[0]);
-            formData.append('is_original', document.getElementById('is_original').checked);
-            formData.append('high_priority', document.getElementById('high_priority').checked);
-            
-            try {
-                const response = await fetch('/verify', { method: 'POST', body: formData });
-                const data = await response.json();
+            setTimeout(() => {
+                document.getElementById('btnSign').style.display = 'block';
+                document.getElementById('spinSign').style.display = 'none';
+                document.getElementById('resSign').style.display = 'block';
                 
-                // Visual watermark logic (Only show if VERIFIED, hide if not_confirmed)
-                if (data.agent_decision && data.agent_decision.toUpperCase() === 'VERIFIED') {
-                    watermark.style.display = 'block';
-                    watermark.className = 'watermark-overlay watermark-verified';
-                    watermark.innerHTML = '✅ ORIGINAL';
-                } else {
-                    // DO NOT SHOW TAMPERED OR FLAGGED. JUST HIDE.
-                    watermark.style.display = 'none';
-                }
+                // Create object URL to simulate download
+                const objUrl = URL.createObjectURL(file);
+                const btnDownload = document.getElementById('btnDownload');
+                btnDownload.href = objUrl;
+                btnDownload.style.display = 'block';
 
-                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#666'}">${data.agent_decision || 'ERROR'}</strong>`;
-                let txHtml = data.solana_tx_id ? `<br><a href="https://explorer.solana.com/tx/${data.solana_tx_id}?cluster=devnet" target="_blank" style="color:blue; font-size:0.75rem;">🔗 View Solana Tx</a>` : '';
+                const mockHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
+                document.getElementById('resSign').innerHTML = 
+                    <strong style="color:#1a73e8">Signed securely!</strong><br>
+                    <span style="font-size:0.75rem">ID: ...</span>
+                ;
+            }, 1200);
+        }
 
-                resDiv.innerHTML = `
-                    Verdict: ${decisionHtml}<br>
-                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> ${data.agent_reasoning || 'N/A'}</span><br>
-                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> ${data.ledger_agent_log || 'N/A'}</span>
-                    ${txHtml}
-                `;
-            } catch (err) {
-                resDiv.innerHTML = `<span style="color:red">Error during verification.</span>`;
-            }
-        });
+        function mockVerify() {
+            if (!document.getElementById('photoVerify').files[0]) { alert("Please select an image first!"); return; }
+            
+            document.getElementById('btnVerify').style.display = 'none';
+            document.getElementById('spinVerify').style.display = 'block';
+            document.getElementById('resVerify').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('btnVerify').style.display = 'block';
+                document.getElementById('spinVerify').style.display = 'none';
+                document.getElementById('resVerify').style.display = 'block';
+                
+                const isOriginal = document.getElementById('is_original').checked;
+                const isHighPriority = document.getElementById('high_priority').checked;
+                
+                let decision = isOriginal ? "VERIFIED" : "TAMPERED";
+                let color = isOriginal ? "#34a853" : "#d93025";
+                let txId = "5Xo9" + Math.random().toString(36).substring(2, 10) + "DemoTx";
+                
+                document.getElementById('resVerify').innerHTML = 
+                    <strong style="color:; font-size:1.2rem;"></strong><br>
+                    <hr style="margin:5px 0; border-top:1px solid #ccc;">
+                    <span style="font-size:0.8rem"><b>On-Chain Match:</b> TRUE</span><br>
+                    <a href="https://explorer.solana.com/" target="_blank" style="font-size:0.75rem; color:#1a73e8;">View Solana Ledger</a><br><br>
+                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> The extracted cryptographic hash and PRNU fingerprint perfectly match the immutable on-chain record. No tampering detected.</span><br>
+                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> </span>
+                ;
+            }, 1800);
+        }
     </script>
 </body>
 </html>
