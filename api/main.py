@@ -14,6 +14,7 @@ publisher = pubsub_v1.PublisherClient()
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 
 from agent.workflow import analyze_provenance, handle_ledger_notary
+from api.watermark_engine import extract_prnu_fingerprint
 from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed, verify_anchor_onchain
 
 app = FastAPI(title="MD-Confirm Orchestrator")
