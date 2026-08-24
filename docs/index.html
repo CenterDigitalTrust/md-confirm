@@ -148,8 +148,8 @@
                 const isOriginal = document.getElementById('is_original').checked;
                 const isHighPriority = document.getElementById('high_priority').checked;
                 
-                let decision = isOriginal ? "VERIFIED" : "TAMPERED";
-                let color = isOriginal ? "#34a853" : "#d93025";
+                let decision = isOriginal ? "ORIGINAL CONFIRMED" : "NOT CONFIRMED (NEEDS REVIEW)";
+                let color = isOriginal ? "#34a853" : "#808080";
                 let txId = "5Xo9" + Math.random().toString(36).substring(2, 10) + "DemoTx";
                 
                 document.getElementById('resVerify').innerHTML = `
