@@ -1,8 +1,8 @@
-# MD-Confirm — The Infrastructure of Truth 🛡️📸
+# MD-Confirm — A Demo Architecture for Provenance 🛡️📸
 
 Built for the **All things agentic hackathon** (Gemini + Google Cloud).
 
-**MD-Confirm** is an autonomous fleet of AI agents designed to establish an unbreakable chain of custody for digital media. By combining invisible cryptographic watermarking, Gemini 3.5 Flash vision-reasoning, and immutable Solana blockchain anchoring, our agentic fleet autonomously verifies the authenticity of any image.
+**MD-Confirm** is an autonomous fleet of AI agents designed to establish an chain of custody demonstration for digital media. By combining invisible cryptographic watermarking, Gemini 3.5 Flash vision-reasoning, and immutable Solana blockchain anchoring, our agentic fleet autonomously verifies the authenticity of any image.
 
 ## 🏆 Track: The Taskmaster
 MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it takes the messy, multi-step chore of visual forensics and handles it end-to-end: automatically signing images at capture, managing zero-trust state via Google Firestore, and triggering a reasoning agent to analyze and anchor proofs on a public blockchain.
@@ -33,7 +33,7 @@ MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it
 └─────────────────────────┬──────────────────────────────┘
                           │ (6. Autonomous Verdict)
                           ▼
-             [ 🟢 VERIFIED / 🔴 TAMPERED ]
+             [ 🟢 VERIFIED / 🔴 NOT_CONFIRMED ]
 ```
 
 ## 🛠️ Tech Stack
@@ -81,3 +81,9 @@ Open your browser and navigate to `http://localhost:8000`.
 1. Upload an image to "Snap & Sign".
 2. Download the watermarked result.
 3. Upload it to the "Verify" tab to see the agents in action!
+
+## ⚠️ Hackathon Disclaimers
+- **Demo Architecture:** This is a proof-of-concept for the hackathon, not a production-ready security system.
+- **Simulated Hardware:** Device attestation and PRNU (silicon noise) extraction are simulated stubs. Real implementation would require secure enclaves (e.g., Camera2 API / raw sensor access) which are out of scope.
+- **Blockchain:** We use the Solana Devnet proxy, not a production ledger.
+- **Positive Badge Only:** Following provenance best practices, the system only awards an ORIGINAL CONFIRMED badge. It does not label images as "fakes" or "deepfakes", but rather defaults to NOT_CONFIRMED / NEEDS_REVIEW.

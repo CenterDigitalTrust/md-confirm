@@ -16,11 +16,15 @@ class FlushDecision(BaseModel):
     trigger: Literal["count_threshold", "timeout", "high_priority", "not_yet"]
     reason: str
 
-def deterministic_verdict(is_in_db: bool, user_claims_original: bool, phash_distance: int, hashes_match: bool) -> VerdictSchema | None:
+def deterministic_verdict(is_in_db: bool, user_claims_original: bool, phash_distance: int, hashes_match: bool, c2pa_status: str) -> VerdictSchema | None:
+    if is_in_db and hashes_match and phash_distance is not None and phash_distance > 10:
+        return VerdictSchema(decision="not_confirmed", needs_review=True, reason="Receipt ID exists but does not match this image (possible ID reuse)")
     if hashes_match is False:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="On-chain/registry hash mismatch")
     if is_in_db and hashes_match and phash_distance is not None and phash_distance < 10:
         return VerdictSchema(decision="original_confirmed", needs_review=False, reason="Registry hit + phash within threshold")
+    if c2pa_status == "missing" and user_claims_original:
+        return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No C2PA manifest; user claimed original")
     if not is_in_db and user_claims_original:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No registry record; user claimed original")
     if not is_in_db:
@@ -32,9 +36,10 @@ async def analyze_provenance(
     user_claims_original: bool,
     phash_distance: int = None,
     hashes_match: bool = None,
-    prnu_confidence: float = None
+    prnu_confidence: float = None,
+    c2pa_status: str = "missing"
 ) -> VerdictSchema:
-    verdict = deterministic_verdict(is_in_db, user_claims_original, phash_distance, hashes_match)
+    verdict = deterministic_verdict(is_in_db, user_claims_original, phash_distance, hashes_match, c2pa_status)
     if verdict is None:
         verdict = VerdictSchema(decision="not_confirmed", needs_review=True, reason="Ambiguous state")
         

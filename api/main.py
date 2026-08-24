@@ -42,7 +42,8 @@ def _init_cloud_clients():
 
 _init_cloud_clients()
 
-from agent.workflow import analyze_provenance, handle_ledger_notary
+from agent.workflow import analyze_provenance
+from agent.c2pa_tools import validate_c2pa, handle_ledger_notary
 from api.watermark_engine import embed_watermark, extract_watermark_and_phash, extract_prnu_fingerprint
 from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed, verify_anchor_onchain
 
@@ -284,8 +285,8 @@ async def verify_content(
             print(f"Pub/Sub push error (non-critical): {e}")
 
     # UI-friendly decision label
-    ui_decision = "ORIGINAL_CONFIRMED" if verdict.decision == "original_confirmed" else "NOT_CONFIRMED"
-    badge = "ORIGINAL CONFIRMED" if verdict.decision == "original_confirmed" else None
+    ui_decision = "ORIGINAL_CONFIRMED" if verdict.decision == "original_confirmed" and not degraded_mode else "NOT_CONFIRMED"
+    badge = "ORIGINAL CONFIRMED" if verdict.decision == "original_confirmed" and not degraded_mode else None
 
     return JSONResponse({
         "status": "success",
