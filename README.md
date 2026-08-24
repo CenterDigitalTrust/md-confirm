@@ -2,10 +2,19 @@
 
 Built for the **All things agentic hackathon** (Gemini + Google Cloud).
 
-**MD-Confirm** is an autonomous fleet of AI agents designed to establish an chain of custody demonstration for digital media. By combining invisible cryptographic watermarking, Gemini 3.5 Flash vision-reasoning, and immutable Solana blockchain anchoring, our agentic fleet autonomously verifies the authenticity of any image.
+**MD-Confirm** is an autonomous fleet of AI agents designed to establish cryptographically verifiable provenance for digital media. 
+
+Instead of trying to "catch up" with Generative AI to detect fakes, **MD-Confirm proposes proactive cryptographic verification of digital content provenance at the exact moment of creation.**
+
+### 🎯 Core Positioning
+MD-Confirm does **not** claim:
+❌ *"We know this image is truth."*
+
+MD-Confirm claims:
+✅ *"We can verify that this image has a confirmed origin and that its provenance chain has not been broken."*
 
 ## 🏆 Track: The Taskmaster
-MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it takes the messy, multi-step chore of visual forensics and handles it end-to-end: automatically signing images at capture, managing zero-trust state via Google Firestore, and triggering a reasoning agent to analyze and anchor proofs on a public blockchain.
+MD-Confirm acts as an autonomous workflow agent. It takes the messy, multi-step chore of visual forensics and handles it end-to-end: automatically signing images at capture, managing zero-trust state via Google Firestore, and triggering a reasoning agent to analyze and anchor proofs on a public blockchain.
 
 ## 🏗️ Architecture
 
@@ -16,9 +25,9 @@ MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it
 ┌────────────────────────────────────────────────────────┐
 │ MD-Confirm Agentic Gateway (FastAPI)                   │
 ├─────────────────────────┬──────────────────────────────┤
-│ 🕵️ Agent 1:            │ 📝 Agent 3:                  │
-│ Capture Signature Sim   │ Ledger Notary                │
-│ (Hardware attestation)  │ (Anchors state to chain)     │
+│ 📸 Agent 1: Edge        │ ⚖️ Agent 3: Notary           │
+│ Simulates hardware      │ Manages evidence publication │
+│ attestation & capture   │ policy (anchoring to chain)  │
 └──────┬──────────────────┴───────────────┬──────────────┘
        │                                  │
        ▼ (2. Stores State)                ▼ (3. Anchors Hash)
@@ -27,14 +36,18 @@ MD-Confirm acts as an autonomous workflow agent. Instead of a simple chatbot, it
        │ (4. Fetches State)               │ (5. Verifies Hash)
        ▼                                  ▼
 ┌────────────────────────────────────────────────────────┐
-│ 🧠 Agent 2: Gemini Verifier (Gemini 3.5 Flash)         │
-│ Evaluates image integrity, handles provenance checks,  │
-│ and cross-references Firestore vs Solana data.         │
+│ 🧠 Agent 2: Gemini Verifier                            │
+│ Deterministic crypto check first, then LLM generates   │
+│ a human-readable explanation of the final verdict.     │
 └─────────────────────────┬──────────────────────────────┘
                           │ (6. Autonomous Verdict)
                           ▼
              [ 🟢 VERIFIED / 🔴 NOT_CONFIRMED ]
 ```
+
+* **Agent 1 (Edge):** Simulates hardware-level device attestation and *provenance-at-capture*. The PoC uses cryptographic device identification, SHA-256, and invisible watermarking, while hardware-level PRNU is simulated in software.
+* **Agent 2 (Verifier):** Performs deterministic verification of cryptographic and provenance signals first. Gemini then generates a human-readable explanation of the resulting verdict. **The LLM is NOT the source of truth and does not make the cryptographic decision.**
+* **Agent 3 (Blockchain Notary):** Manages the evidence publication policy. It can anchor a single receipt or a batch/Merkle root to Solana. A flush is triggered dynamically by a threshold, a timeout, or a high-priority event.
 
 ## 🛠️ Tech Stack
 * **AI Model:** Gemini 3.5 Flash (via Google GenAI SDK)
@@ -84,6 +97,6 @@ Open your browser and navigate to `http://localhost:8000`.
 
 ## ⚠️ Hackathon Disclaimers
 - **Demo Architecture:** This is a proof-of-concept for the hackathon, not a production-ready security system.
-- **Simulated Hardware:** Device attestation and PRNU (silicon noise) extraction are simulated stubs. Real implementation would require secure enclaves (e.g., Camera2 API / raw sensor access) which are out of scope.
+- **Simulated Hardware:** Hardware-level attestation is simulated in this PoC. Production deployment would move this component into a trusted capture environment / secure hardware layer.
 - **Blockchain:** We use the Solana Devnet proxy, not a production ledger.
 - **Positive Badge Only:** Following provenance best practices, the system only awards an ORIGINAL CONFIRMED badge. It does not label images as "fakes" or "deepfakes", but rather defaults to NOT_CONFIRMED / NEEDS_REVIEW.
