@@ -5,14 +5,41 @@ import os
 import json
 import asyncio
 import io
+from dotenv import load_dotenv
 
-# === STRICT GOOGLE CLOUD INFRASTRUCTURE ===
+load_dotenv()
+
+# === GOOGLE CLOUD INFRASTRUCTURE (lazy init for graceful degradation) ===
 from google.cloud import firestore
 from google.cloud import pubsub_v1
 
-db_client = firestore.AsyncClient()
-publisher = pubsub_v1.PublisherClient()
+db_client = None
+publisher = None
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+DEGRADED_MODE = False
+
+# If credentials file doesn't exist, clear the env var to avoid hard crash
+_creds_file = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+if _creds_file and not os.path.exists(_creds_file):
+    print(f"[WARNING] Credentials file not found: {_creds_file} - clearing env var")
+    os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
+
+def _init_cloud_clients():
+    """Initialize Google Cloud clients. Returns True on success, False on failure."""
+    global db_client, publisher, DEGRADED_MODE
+    try:
+        db_client = firestore.AsyncClient()
+        publisher = pubsub_v1.PublisherClient()
+        DEGRADED_MODE = False
+        return True
+    except Exception as e:
+        print(f"[WARNING] Google Cloud credentials not found - running in DEGRADED MODE: {e}")
+        db_client = None
+        publisher = None
+        DEGRADED_MODE = True
+        return False
+
+_init_cloud_clients()
 
 from agent.workflow import analyze_provenance, handle_ledger_notary
 from api.watermark_engine import embed_watermark, extract_watermark_and_phash, extract_prnu_fingerprint
@@ -31,6 +58,9 @@ async def startup_event():
 # === FIRESTORE DB ABSTRACTION (Receipts Schema) ===
 async def save_hash_to_db(file_hash: str, watermark_id: str = None, phash: str = None, original_sha256: str = None):
     """Save a signed image receipt to Firestore with watermark metadata."""
+    if not db_client:
+        print(f"[DEGRADED] Would save hash {file_hash[:16]}... to Firestore")
+        return
     doc_data = {
         "image_hash": file_hash,
         "timestamp": firestore.SERVER_TIMESTAMP,
@@ -51,12 +81,16 @@ async def save_hash_to_db(file_hash: str, watermark_id: str = None, phash: str =
     await pending_ref.set({"image_hash": file_hash, "timestamp": firestore.SERVER_TIMESTAMP})
 
 async def check_hash_in_db_async(file_hash: str) -> bool:
+    if not db_client:
+        return False
     doc_ref = db_client.collection("receipts").document(file_hash)
     doc = await doc_ref.get()
     return doc.exists
 
 async def get_receipt_from_db(file_hash: str) -> dict:
     """Get full receipt document from Firestore."""
+    if not db_client:
+        return None
     doc_ref = db_client.collection("receipts").document(file_hash)
     doc = await doc_ref.get()
     if doc.exists:
@@ -65,6 +99,8 @@ async def get_receipt_from_db(file_hash: str) -> dict:
 
 async def find_receipt_by_watermark_id(watermark_id: str) -> dict:
     """Look up a receipt by its embedded watermark ID."""
+    if not db_client:
+        return None
     query = db_client.collection("receipts").where("watermark_id", "==", watermark_id)
     docs = query.stream()
     async for doc in docs:
@@ -72,6 +108,8 @@ async def find_receipt_by_watermark_id(watermark_id: str) -> dict:
     return None
 
 async def get_pending_merkle_count() -> int:
+    if not db_client:
+        return 0
     docs = db_client.collection("merkle_pending").stream()
     count = 0
     async for _ in docs:
@@ -232,7 +270,7 @@ async def verify_content(
             ledger_agent_log = "Ledger Agent 3: Normal unverified sharing."
 
     # === GOOGLE CLOUD PUB/SUB INTEGRATION ===
-    if PROJECT_ID:
+    if PROJECT_ID and publisher:
         TOPIC_PATH = publisher.topic_path(PROJECT_ID, "agent-verification-events")
         try:
             message_data = json.dumps({"hash": file_hash, "verdict": verdict.decision}).encode("utf-8")
