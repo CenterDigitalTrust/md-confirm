@@ -43,9 +43,10 @@ def _init_cloud_clients():
 _init_cloud_clients()
 
 from agent.workflow import analyze_provenance
-from agent.c2pa_tools import validate_c2pa, handle_ledger_notary
+from agent.c2pa_tools import validate_c2pa
+from agent.workflow import handle_ledger_notary
 from api.watermark_engine import embed_watermark, extract_watermark_and_phash, extract_prnu_fingerprint
-from blockchain.solana_service import anchor_receipt, request_airdrop_if_needed, verify_anchor_onchain
+from blockchain.solana_service import anchor_receipt, anchor_merkle_root, request_airdrop_if_needed, verify_anchor_onchain
 
 app = FastAPI(title="MD-Confirm Orchestrator")
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")

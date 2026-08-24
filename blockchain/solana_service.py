@@ -98,3 +98,30 @@ async def verify_anchor_onchain(tx_id: str) -> str:
             return None
         except Exception as e:
             return None
+
+
+async def anchor_merkle_root(root_hash: str, batch_size: int) -> str:
+    from datetime import datetime
+    async with AsyncClient("https://api.devnet.solana.com") as client:
+        wallet = load_wallet()
+        ts = datetime.utcnow().isoformat()
+        memo_message = f"MD-Confirm | Root: {root_hash} | BatchSize: {batch_size} | TS: {ts}"
+        
+        memo_ix = Instruction(
+            program_id=MEMO_PROGRAM_ID,
+            accounts=[],
+            data=memo_message.encode("utf-8")
+        )
+        
+        recent_blockhash_resp = await client.get_latest_blockhash()
+        recent_blockhash = recent_blockhash_resp.value.blockhash
+        
+        msg = Message.new_with_blockhash(
+            [memo_ix],
+            wallet.pubkey(),
+            recent_blockhash
+        )
+        
+        tx = VersionedTransaction(msg, [wallet])
+        response = await client.send_transaction(tx)
+        return str(response.value)
