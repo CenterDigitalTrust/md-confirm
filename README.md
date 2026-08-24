@@ -1,4 +1,6 @@
-# MD-Confirm — A Demo Architecture for Provenance 🛡️📸
+# MD-Confirm
+
+![Demo](docs/media/demo.gif) — A Demo Architecture for Provenance 🛡️📸
 
 Built for the **All things agentic hackathon** (Gemini + Google Cloud).
 
@@ -95,8 +97,26 @@ Open your browser and navigate to `http://localhost:8000`.
 2. Download the watermarked result.
 3. Upload it to the "Verify" tab to see the agents in action!
 
+## How It Works
+
+1. **C2PA Intake & Signing:** The user uploads an image. We read C2PA manifests (if present), cryptographically sign it with a robust watermark/pHash, and generate a secure receipt in Firestore.
+2. **Blockchain Anchoring:** The Ledger Notary batches pending receipts into a Merkle Tree and anchors the Root to the Solana Devnet to ensure timestamp and immutability.
+3. **Post-Publication Verification:** When the image is shared, users can drag-and-drop it into the verifier. It checks C2PA presence, compares visual similarity (pHash distance), queries the Merkle root, and issues a deterministic decision: ORIGINAL CONFIRMED or NOT CONFIRMED.
+
+
 ## ⚠️ Hackathon Disclaimers
 - **Demo Architecture:** This is a proof-of-concept for the hackathon, not a production-ready security system.
 - **Simulated Hardware:** Hardware-level attestation is simulated in this PoC. Production deployment would move this component into a trusted capture environment / secure hardware layer.
 - **Blockchain:** We use the Solana Devnet proxy, not a production ledger.
 - **Positive Badge Only:** Following provenance best practices, the system only awards an ORIGINAL CONFIRMED badge. It does not label images as "fakes" or "deepfakes", but rather defaults to NOT_CONFIRMED / NEEDS_REVIEW.
+
+## 🐳 Run with Docker
+`ash
+docker build -t md-confirm .
+docker run -p 8000:8000 --env-file .env md-confirm
+`
+
+## ✅ Run Tests
+`ash
+pytest tests/test_agent.py
+`
