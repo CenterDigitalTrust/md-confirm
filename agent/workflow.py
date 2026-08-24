@@ -4,7 +4,9 @@ from pydantic import BaseModel
 from typing import Literal
 
 def get_client():
-    return genai.Client()
+    if os.getenv("GEMINI_API_KEY"):
+        return genai.Client()
+    return genai.Client(vertexai=True, project=os.getenv("GOOGLE_CLOUD_PROJECT") or "gen-lang-client-0166064225", location="us-central1")
 
 class VerdictSchema(BaseModel):
     decision: Literal["original_confirmed", "not_confirmed"]
@@ -21,10 +23,10 @@ def deterministic_verdict(is_in_db: bool, user_claims_original: bool, phash_dist
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="Receipt ID exists but does not match this image (possible ID reuse)")
     if hashes_match is False:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="On-chain/registry hash mismatch")
-    if is_in_db and hashes_match and phash_distance is not None and phash_distance < 10:
-        return VerdictSchema(decision="original_confirmed", needs_review=False, reason="Registry hit + phash within threshold")
     if c2pa_status == "missing" and user_claims_original:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No C2PA manifest; user claimed original")
+    if is_in_db and hashes_match and phash_distance is not None and phash_distance < 10:
+        return VerdictSchema(decision="original_confirmed", needs_review=False, reason="Registry hit + phash within threshold")
     if not is_in_db and user_claims_original:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No registry record; user claimed original")
     if not is_in_db:

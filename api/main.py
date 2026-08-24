@@ -175,7 +175,6 @@ async def verify_content(
 ):
     """Agent 2 + Agent 3: Verify provenance via Gemini reasoning + Solana anchoring."""
     degraded_mode = False
-    degraded_mode = False
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
     
@@ -232,9 +231,6 @@ async def verify_content(
     
     c2pa_info = validate_c2pa(content)
     c2pa_status = c2pa_info.get("c2pa_status", "missing")
-    
-    c2pa_info = validate_c2pa(content)
-    c2pa_status = c2pa_info.get("c2pa_status", "missing")
     # === AGENT 2: GEMINI VERIFIER ===
     try:
         verdict = await analyze_provenance(
@@ -272,10 +268,11 @@ async def verify_content(
                 tx_id = await anchor_receipt(file_hash, verdict.decision)
                 # Update DB with transaction
                 receipt_hash = original_receipt.get("image_hash", file_hash) if original_receipt else file_hash
-                await db_client.collection("receipts").document(receipt_hash).update({
-                    "solana_tx_id": tx_id,
-                    "decision": verdict.decision
-                })
+                if db_client:
+                    await db_client.collection("receipts").document(receipt_hash).update({
+                        "solana_tx_id": tx_id,
+                        "decision": verdict.decision
+                    })
         except Exception as e:
             ledger_agent_log = f"Ledger Notary Error: {str(e)}"
             tx_id = "error_solana_network"
@@ -303,7 +300,6 @@ async def verify_content(
     return JSONResponse({
         "status": "success",
         "file_hash": file_hash,
-        "degraded_mode": degraded_mode,
         "degraded_mode": degraded_mode,
         "agent_decision": ui_decision,
         "badge": badge,

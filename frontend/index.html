@@ -281,12 +281,16 @@
                 
                 if (!response.ok) throw new Error("Unauthorized or server error");
 
-                const data = await response.json();
-                resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${data.hash.substring(0,15)}...</span>`;
+                const hash = response.headers.get('X-MD-Confirm-Hash') || 'unknown';
+                const watermarkId = response.headers.get('X-MD-Confirm-Watermark-ID');
+                const blob = await response.blob();
+                const watermarkedFile = new File([blob], fileInputSign.files[0].name, { type: 'image/jpeg' });
+                
+                resDiv.innerHTML = `<strong style="color:#1a73e8">Signed securely!</strong><br><span style="font-size:0.75rem; color:gray">SHA256: ${hash.substring(0,15)}...</span>`;
                 
                 // AUTO-TRANSFER TO SOCIAL NETWORK
                 const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(fileInputSign.files[0]);
+                dataTransfer.items.add(watermarkedFile);
                 fileInputVerify.files = dataTransfer.files;
                 
                 // Show in Social App
