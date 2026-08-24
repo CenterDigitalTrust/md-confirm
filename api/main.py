@@ -174,6 +174,8 @@ async def verify_content(
     high_priority: bool = Form(False)
 ):
     """Agent 2 + Agent 3: Verify provenance via Gemini reasoning + Solana anchoring."""
+    degraded_mode = False
+    degraded_mode = False
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
     
@@ -227,18 +229,27 @@ async def verify_content(
     # PRNU simulation
     prnu_confidence = extract_prnu_fingerprint(content)
     
+    
+    c2pa_info = validate_c2pa(content)
+    c2pa_status = c2pa_info.get("c2pa_status", "missing")
+    
+    c2pa_info = validate_c2pa(content)
+    c2pa_status = c2pa_info.get("c2pa_status", "missing")
     # === AGENT 2: GEMINI VERIFIER ===
     try:
         verdict = await analyze_provenance(
             is_in_db=is_in_db,
             user_claims_original=is_original,
             phash_distance=phash_distance,
-            prnu_confidence=prnu_confidence,
             hashes_match=hashes_match,
-            file_hash=file_hash
+            prnu_confidence=prnu_confidence,
+            c2pa_status=c2pa_status
         )
     except Exception as e:
-        return JSONResponse({"status": "error", "message": f"Agent 2 (Gemini) failed: {str(e)}"}, status_code=500)
+        print(f"DEGRADED MODE ENABLED: Agent reasoning failed: {e}")
+        degraded_mode = True
+        from agent.workflow import VerdictSchema
+        verdict = VerdictSchema(decision="not_confirmed", needs_review=True, reason="Degraded mode: Infrastructure unavailable")
     
     # Override verdict if on-chain hash mismatch detected
     if hashes_match is False:
@@ -292,6 +303,8 @@ async def verify_content(
     return JSONResponse({
         "status": "success",
         "file_hash": file_hash,
+        "degraded_mode": degraded_mode,
+        "degraded_mode": degraded_mode,
         "agent_decision": ui_decision,
         "badge": badge,
         "agent_reasoning": verdict.reason,
