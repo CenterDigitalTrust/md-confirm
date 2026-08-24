@@ -99,11 +99,6 @@ def extract_watermark_and_phash(image_bytes: bytes, original_phash_str: str = No
     except ReedSolomonError:
         return None, 0, str(downloaded_phash), distance
 
-def extract_prnu_fingerprint(image_bytes: bytes) -> float:
-    """
-    Simulates extracting the Photo Response Non-Uniformity (PRNU) silicon noise pattern.
-    In a real hardware implementation, this matches the unique sensor defect map.
-    Returns a confidence score 0.0 - 1.0 of camera sensor match.
-    """
-    # For hackathon demo, we simulate a successful PRNU extraction if the image has our embedded EXIF/watermark.
-    return 0.98  # 98% silicon match confidence
+def extract_prnu_fingerprint(image_bytes: bytes) -> float | None:
+    """Demo stub. Real PRNU needs Camera2/raw - out of hackathon scope."""
+    return None  # never invent confidence.

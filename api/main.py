@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form, Request, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 import hashlib
+import hmac
 import os
 import json
 import asyncio
@@ -129,8 +130,11 @@ async def sign_content(
     x_device_attestation_key: str = Header(None)
 ):
     """Agent 1: Capture Signature — embeds invisible watermark, computes hashes, saves to Firestore."""
-    if x_device_attestation_key != "valid-hardware-key-123":
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Device Attestation Key")
+    EXPECTED = os.getenv("X_DEVICE_ATTESTATION_KEY")
+    if not EXPECTED or not x_device_attestation_key:
+        raise HTTPException(status_code=401, detail="Missing device attestation")
+    if not hmac.compare_digest(x_device_attestation_key, EXPECTED):
+        raise HTTPException(status_code=401, detail="Invalid device attestation")
         
     content = await file.read()
     
@@ -280,12 +284,14 @@ async def verify_content(
             print(f"Pub/Sub push error (non-critical): {e}")
 
     # UI-friendly decision label
-    ui_decision = "VERIFIED" if verdict.decision == "original_confirmed" else "NOT_CONFIRMED"
+    ui_decision = "ORIGINAL_CONFIRMED" if verdict.decision == "original_confirmed" else "NOT_CONFIRMED"
+    badge = "ORIGINAL CONFIRMED" if verdict.decision == "original_confirmed" else None
 
     return JSONResponse({
         "status": "success",
         "file_hash": file_hash,
         "agent_decision": ui_decision,
+        "badge": badge,
         "agent_reasoning": verdict.reason,
         "needs_review": verdict.needs_review,
         "ledger_agent_log": ledger_agent_log,

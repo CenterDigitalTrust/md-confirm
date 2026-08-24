@@ -325,7 +325,7 @@
                 const data = await response.json();
                 
                 // Visual watermark logic (Only show if VERIFIED, hide if not_confirmed)
-                if (data.agent_decision && data.agent_decision.toUpperCase() === 'VERIFIED') {
+                if (data.agent_decision && data.agent_decision.toUpperCase() === 'ORIGINAL_CONFIRMED') {
                     watermark.style.display = 'block';
                     watermark.className = 'watermark-overlay watermark-verified';
                     watermark.innerHTML = '✅ ORIGINAL';
@@ -334,7 +334,7 @@
                     watermark.style.display = 'none';
                 }
 
-                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'VERIFIED' ? '#34a853' : '#666'}">${data.agent_decision || 'ERROR'}</strong>`;
+                let decisionHtml = `<strong style="color:${data.agent_decision.toUpperCase() === 'ORIGINAL_CONFIRMED' ? '#34a853' : '#666'}">${data.agent_decision || 'ERROR'}</strong>`;
                 let txHtml = data.solana_tx_id ? `<br><a href="https://explorer.solana.com/tx/${data.solana_tx_id}?cluster=devnet" target="_blank" style="color:blue; font-size:0.75rem;">🔗 View Solana Tx</a>` : '';
 
                 resDiv.innerHTML = `
