@@ -3,165 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MD-Confirm: The Infrastructure of Truth</title>
+    <title>MD-Confirm Demo (Pixel View)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #333; margin: 0; padding: 2rem; min-height: 100vh; }
-        .header-title { text-align: center; margin-bottom: 3rem; }
-        .header-title h1 { color: #1a73e8; font-size: 2.5rem; margin: 0; }
-        .header-title p { font-size: 1.2rem; color: #555; }
-        .demo-container { display: flex; justify-content: center; }
-        .phone-mockup { background: #fff; width: 375px; height: 812px; border-radius: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 8px solid #333; overflow: hidden; position: relative; display: flex; flex-direction: column; }
-        .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 150px; height: 25px; background: #333; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; }
-        .app-header { background: #1a73e8; color: white; padding: 2.5rem 1rem 1rem; text-align: center; font-weight: bold; font-size: 1.2rem; }
-        .tabs { display: flex; background: #f1f3f4; border-bottom: 1px solid #ddd; }
-        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: 500; color: #5f6368; }
-        .tab.active { color: #1a73e8; border-bottom: 2px solid #1a73e8; }
-        .content { padding: 20px; flex: 1; overflow-y: auto; }
-        .file-input-wrapper { background: #e8f0fe; border: 2px dashed #1a73e8; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        .file-input-wrapper input[type="file"] { display: none; }
-        .file-input-wrapper:hover { background: #d2e3fc; }
-        .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: background 0.3s; }
-        .btn-primary { background: #1a73e8; color: white; }
-        .btn-primary:hover { background: #1557b0; }
-        .btn-download { background: #34a853; color: white; text-decoration: none; text-align: center; display: none; }
-        .btn-download:hover { background: #28803e; }
-        .result-box { background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-top: 20px; font-family: monospace; font-size: 0.9rem; word-wrap: break-word; display: none; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1a73e8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 100%);
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            gap: 50px;
+        }
+        
+        .demo-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: 700;
+            color: #202124;
+            text-shadow: 0px 2px 4px rgba(255,255,255,0.5);
+            text-align: center;
+        }
+
+        /* Phone Container */
+        .pixel-phone {
+            width: 375px;
+            height: 812px;
+            border: 14px solid #1a1a1a;
+            border-radius: 50px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 0 0 2px #444;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Speaker / Camera Notch Area */
+        .camera-hole {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
+        }
+
+        .phone-header {
+            background-color: #f1f3f4;
+            padding: 40px 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid #dadce0;
+        }
+        .phone-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #202124;
+            font-weight: 500;
+        }
+        .phone-header p {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        .screen-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #1a73e8;
+            border-radius: 12px;
+            padding: 30px 10px;
+            text-align: center;
+            background-color: #e8f0fe;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .upload-area:hover { background-color: #d2e3fc; }
+        .upload-area img.preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            display: none;
+            margin: 0 auto;
+        }
+        .upload-area p {
+            margin: 10px 0 0;
+            color: #1a73e8;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .file-input {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(26,115,232,0.3);
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background-color: #1557b0; }
+        .btn-primary:disabled { background-color: #dadce0; color: #9aa0a6; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-secondary {
+            background-color: #fff;
+            color: #1a73e8;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover { background-color: #f1f3f4; }
+
+        /* Loader */
+        .loader {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .checkbox-container { display: flex; align-items: center; margin-bottom: 15px; font-size: 0.9rem; }
-        .checkbox-container input { margin-right: 10px; }
+
+        /* Results Card */
+        .result-card {
+            background: #fff;
+            border: 1px solid #dadce0;
+            border-radius: 12px;
+            padding: 16px;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .result-item {
+            margin-bottom: 12px;
+        }
+        .result-item:last-child { margin-bottom: 0; }
+        .result-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #5f6368;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .result-value {
+            font-size: 13px;
+            color: #202124;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #e8eaed;
+        }
+
+        /* Verification Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .badge.original {
+            background-color: #e6f4ea;
+            color: #137333;
+            border: 1px solid #ceead6;
+        }
+        .badge.not-confirmed {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        
+        /* Status Text */
+        .status-text {
+            text-align: center;
+            font-size: 13px;
+            color: #5f6368;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="header-title">
-        <h1>MD-Confirm: The Infrastructure of Truth</h1>
-        <p>From Camera Sensor to Global Ecosystem Verification (GitHub Pages Demo)</p>
+
+    <div class="demo-title">MD-Confirm: C2PA & Blockchain Provenance Demo</div>
+
+    <!-- PHONE 1: CREATOR (SIGN) -->
+    <div class="pixel-phone">
+        <div class="camera-hole"></div>
+        <div class="phone-header">
+            <h2>Creator Studio</h2>
+            <p>Upload & Sign Image</p>
+        </div>
+        <div class="screen-content">
+            <div class="upload-area" id="sign-upload-area">
+                <input type="file" id="sign-file" class="file-input" accept="image/*">
+                <img id="sign-preview" class="preview" alt="Preview">
+                <p id="sign-upload-text">Tap to select image</p>
+            </div>
+            
+            <button id="sign-btn" class="btn-primary" disabled>Sign & Protect</button>
+            <div id="sign-loader" class="loader"></div>
+            <div id="sign-status" class="status-text">Embedding C2PA & hashing...</div>
+
+            <div id="sign-result" class="result-card">
+                <div class="badge original">✓ SIGNED SUCCESSFULLY</div>
+                
+                <div class="result-item">
+                    <div class="result-label">Receipt ID (SHA256)</div>
+                    <div class="result-value" id="res-sign-hash">...</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Watermark ID</div>
+                    <div class="result-value" id="res-sign-watermark">...</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Database Status</div>
+                    <div class="result-value" style="color:#137333; font-weight:bold;">Indexed in Firestore</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Blockchain (Solana Devnet)</div>
+                    <div class="result-value" style="color:#e37400; font-weight:bold;">Pending Batch / Anchored</div>
+                </div>
+                
+                <button id="download-btn" class="btn-secondary">⬇ Download Protected Image</button>
+            </div>
+        </div>
     </div>
 
-    <div class="demo-container">
-        <div class="phone-mockup">
-            <div class="notch"></div>
-            <div class="app-header">MD-Confirm UI</div>
-            <div class="tabs">
-                <div class="tab active" id="tab-sign" onclick="switchTab('sign')">?? Snap & Sign</div>
-                <div class="tab" id="tab-verify" onclick="switchTab('verify')">??? Verify</div>
+    <!-- PHONE 2: CONSUMER (VERIFY) -->
+    <div class="pixel-phone">
+        <div class="camera-hole"></div>
+        <div class="phone-header">
+            <h2>Social Feed</h2>
+            <p>Verify Image Provenance</p>
+        </div>
+        <div class="screen-content">
+            <div class="upload-area" id="verify-upload-area">
+                <input type="file" id="verify-file" class="file-input" accept="image/*">
+                <img id="verify-preview" class="preview" alt="Preview">
+                <p id="verify-upload-text">Tap to check image</p>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:8px; margin: 5px 0;">
+                <input type="checkbox" id="verify-is-original" checked style="accent-color: #1a73e8;">
+                <label for="verify-is-original" style="font-size:13px; color:#5f6368;">Author claims it's original</label>
             </div>
 
-            <!-- SIGN TAB -->
-            <div class="content" id="content-sign">
-                <p style="font-size: 0.9rem; color: #666; margin-top:0;">Takes photo, extracts sensor noise, and hardware-signs the SHA-256 hash to local ledger.</p>
-                <label class="file-input-wrapper">
-                    <input type="file" id="photoSign" accept="image/*">
-                    <span id="signFileName">?? Browse Image...</span>
-                </label>
-                <button class="btn btn-primary" id="btnSign" onclick="mockSign()">Snap & Sign ?</button>
-                <div class="spinner" id="spinSign"></div>
-                
-                <a href="#" id="btnDownload" class="btn btn-download" download="watermarked.jpg">? Download Signed Image</a>
-                
-                <div class="result-box" id="resSign"></div>
-            </div>
+            <button id="verify-btn" class="btn-primary" disabled>Verify Provenance</button>
+            <div id="verify-loader" class="loader"></div>
+            <div id="verify-status" class="status-text">Extracting metadata & checking chain...</div>
 
-            <!-- VERIFY TAB -->
-            <div class="content" id="content-verify" style="display: none;">
-                <p style="font-size: 0.9rem; color: #666; margin-top:0;">Uploads image. Agent verifies integrity against ledger before publication.</p>
-                <label class="file-input-wrapper">
-                    <input type="file" id="photoVerify" accept="image/*">
-                    <span id="verifyFileName">?? Browse Image...</span>
-                </label>
+            <div id="verify-result" class="result-card">
+                <div id="res-verify-badge" class="badge">...</div>
                 
-                <div class="checkbox-container">
-                    <input type="checkbox" id="is_original" checked>
-                    <label for="is_original">I claim THIS IS ORIGINAL!</label>
+                <div class="result-item">
+                    <div class="result-label">Agent Reasoning</div>
+                    <div class="result-value" id="res-verify-reason" style="font-style:italic;">...</div>
                 </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="high_priority">
-                    <label for="high_priority" style="color: #d93025; font-weight:bold;">?? High Priority (Breaking News)</label>
+                <div class="result-item">
+                    <div class="result-label">Hash / ID</div>
+                    <div class="result-value" id="res-verify-hash">...</div>
                 </div>
-
-                <button class="btn btn-primary" id="btnVerify" onclick="mockVerify()">Verify Integrity ??</button>
-                <div class="spinner" id="spinVerify"></div>
-                <div class="result-box" id="resVerify"></div>
+                <div class="result-item">
+                    <div class="result-label">Ledger Agent Log</div>
+                    <div class="result-value" id="res-verify-ledger">...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function switchTab(tab) {
-            document.getElementById('tab-sign').classList.remove('active');
-            document.getElementById('tab-verify').classList.remove('active');
-            document.getElementById('content-sign').style.display = 'none';
-            document.getElementById('content-verify').style.display = 'none';
-            document.getElementById('tab-' + tab).classList.add('active');
-            document.getElementById('content-' + tab).style.display = 'block';
+        // --- HELPER FUNCTIONS ---
+        function handleFileSelect(inputId, previewId, textId, btnId) {
+            const input = document.getElementById(inputId);
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById(previewId).src = e.target.result;
+                        document.getElementById(previewId).style.display = 'block';
+                        document.getElementById(textId).style.display = 'none';
+                        document.getElementById(btnId).disabled = false;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
         }
 
-        document.getElementById('photoSign').addEventListener('change', function(e) {
-            if(e.target.files[0]) document.getElementById('signFileName').textContent = e.target.files[0].name;
+        // Setup file inputs
+        handleFileSelect('sign-file', 'sign-preview', 'sign-upload-text', 'sign-btn');
+        handleFileSelect('verify-file', 'verify-preview', 'verify-upload-text', 'verify-btn');
+
+        // --- SIGN LOGIC (PHONE 1) ---
+        let lastSignedBlobUrl = null;
+        let lastSignedFilename = "watermarked.jpg";
+
+        document.getElementById('sign-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('sign-file');
+            if (!fileInput.files[0]) return;
+
+            const btn = document.getElementById('sign-btn');
+            const loader = document.getElementById('sign-loader');
+            const status = document.getElementById('sign-status');
+            const resultCard = document.getElementById('sign-result');
+
+            btn.style.display = 'none';
+            loader.style.display = 'block';
+            status.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                // Determine API base url (if running locally vs cloud)
+                const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                                ? '' 
+                                : 'https://' + window.location.host; // Auto-detect for Cloud Run
+
+                const response = await fetch(apiBase + '/sign', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const hash = response.headers.get('X-MD-Confirm-Hash');
+                    const watermarkId = response.headers.get('X-MD-Confirm-Watermark-ID');
+                    
+                    document.getElementById('res-sign-hash').innerText = hash || 'N/A';
+                    document.getElementById('res-sign-watermark').innerText = watermarkId || 'N/A';
+                    
+                    // Create blob for download
+                    const blob = await response.blob();
+                    if (lastSignedBlobUrl) URL.revokeObjectURL(lastSignedBlobUrl);
+                    lastSignedBlobUrl = URL.createObjectURL(blob);
+                    
+                    // Get filename from header if exists
+                    const cd = response.headers.get('Content-Disposition');
+                    if (cd && cd.includes('filename=')) {
+                        lastSignedFilename = cd.split('filename=')[1].replace(/"/g, '');
+                    }
+
+                    resultCard.style.display = 'block';
+                } else {
+                    alert('Error signing image. Check console.');
+                    console.error(await response.text());
+                }
+            } catch (err) {
+                alert('Network error. Is the backend running?');
+                console.error(err);
+            } finally {
+                loader.style.display = 'none';
+                status.style.display = 'none';
+                btn.style.display = 'block';
+                btn.innerText = 'Sign Another Image';
+            }
         });
 
-        document.getElementById('photoVerify').addEventListener('change', function(e) {
-            if(e.target.files[0]) document.getElementById('verifyFileName').textContent = e.target.files[0].name;
+        // Download Button Logic
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (lastSignedBlobUrl) {
+                const a = document.createElement('a');
+                a.href = lastSignedBlobUrl;
+                a.download = lastSignedFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         });
 
-        // SIMULATED LOGIC FOR GITHUB PAGES HTML
-        function mockSign() {
-            const file = document.getElementById('photoSign').files[0];
-            if (!file) { alert("Please select an image first!"); return; }
-            
-            document.getElementById('btnSign').style.display = 'none';
-            document.getElementById('spinSign').style.display = 'block';
-            document.getElementById('resSign').style.display = 'none';
-            document.getElementById('btnDownload').style.display = 'none';
-            
-            setTimeout(() => {
-                document.getElementById('btnSign').style.display = 'block';
-                document.getElementById('spinSign').style.display = 'none';
-                document.getElementById('resSign').style.display = 'block';
-                
-                // Create object URL to simulate download
-                const objUrl = URL.createObjectURL(file);
-                const btnDownload = document.getElementById('btnDownload');
-                btnDownload.href = objUrl;
-                btnDownload.style.display = 'block';
+        // --- VERIFY LOGIC (PHONE 2) ---
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('verify-file');
+            if (!fileInput.files[0]) return;
 
-                const mockHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
-                document.getElementById('resSign').innerHTML = `
-                    <strong style="color:#1a73e8">Signed securely!</strong><br>
-                    <span style="font-size:0.75rem">ID: ${mockHash.substring(0,16)}...</span>
-                `;
-            }, 1200);
-        }
+            const btn = document.getElementById('verify-btn');
+            const loader = document.getElementById('verify-loader');
+            const status = document.getElementById('verify-status');
+            const resultCard = document.getElementById('verify-result');
 
-        function mockVerify() {
-            if (!document.getElementById('photoVerify').files[0]) { alert("Please select an image first!"); return; }
-            
-            document.getElementById('btnVerify').style.display = 'none';
-            document.getElementById('spinVerify').style.display = 'block';
-            document.getElementById('resVerify').style.display = 'none';
-            
-            setTimeout(() => {
-                document.getElementById('btnVerify').style.display = 'block';
-                document.getElementById('spinVerify').style.display = 'none';
-                document.getElementById('resVerify').style.display = 'block';
+            btn.style.display = 'none';
+            loader.style.display = 'block';
+            status.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('is_original', document.getElementById('verify-is-original').checked);
+
+            try {
+                const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                                ? '' 
+                                : 'https://' + window.location.host;
+
+                const response = await fetch(apiBase + '/verify', {
+                    method: 'POST',
+                    body: formData
+                });
                 
-                const isOriginal = document.getElementById('is_original').checked;
-                const isHighPriority = document.getElementById('high_priority').checked;
+                const data = await response.json();
                 
-                let decision = isOriginal ? "ORIGINAL CONFIRMED" : "NOT CONFIRMED (NEEDS REVIEW)";
-                let color = isOriginal ? "#34a853" : "#808080";
-                let txId = "5Xo9" + Math.random().toString(36).substring(2, 10) + "DemoTx";
+                document.getElementById('res-verify-hash').innerText = data.file_hash || 'N/A';
+                document.getElementById('res-verify-reason').innerText = data.agent_reasoning || 'No reasoning provided.';
+                document.getElementById('res-verify-ledger').innerText = data.ledger_agent_log || data.solana_tx_id || 'N/A';
+
+                const badgeEl = document.getElementById('res-verify-badge');
+                if (data.agent_decision === "ORIGINAL_CONFIRMED" || data.badge === "ORIGINAL CONFIRMED") {
+                    badgeEl.className = 'badge original';
+                    badgeEl.innerText = '✓ ORIGINAL CONFIRMED';
+                } else {
+                    badgeEl.className = 'badge not-confirmed';
+                    badgeEl.innerText = '⚠ NOT CONFIRMED (NEEDS REVIEW)';
+                }
                 
-                document.getElementById('resVerify').innerHTML = `
-                    <strong style="color:${color}; font-size:1.2rem;">${decision}</strong><br>
-                    <hr style="margin:5px 0; border-top:1px solid #ccc;">
-                    <span style="font-size:0.8rem"><b>On-Chain Match:</b> TRUE</span><br>
-                    <a href="https://explorer.solana.com/" target="_blank" style="font-size:0.75rem; color:#1a73e8;">View Solana Ledger</a><br><br>
-                    <span style="font-size:0.75rem"><b>Agent 2 (Gemini):</b> The extracted cryptographic hash and PRNU fingerprint perfectly match the immutable on-chain record. No tampering detected.</span><br>
-                    <span style="font-size:0.75rem; color:#8B4513;"><b>Agent 3 (Ledger):</b> Batch flush triggered. TX: ${txId}</span>
-                `;
-            }, 1800);
-        }
+                if (data.degraded_mode) {
+                    badgeEl.innerText += ' [DEGRADED MODE]';
+                }
+
+                resultCard.style.display = 'block';
+                
+            } catch (err) {
+                alert('Network error during verification.');
+                console.error(err);
+            } finally {
+                loader.style.display = 'none';
+                status.style.display = 'none';
+                btn.style.display = 'block';
+                btn.innerText = 'Check Another Image';
+            }
+        });
     </script>
 </body>
 </html>
