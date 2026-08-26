@@ -23,9 +23,10 @@ def deterministic_verdict(is_in_db: bool, user_claims_original: bool, phash_dist
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="Receipt ID exists but does not match this image (possible ID reuse)")
     if hashes_match is False:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="On-chain/registry hash mismatch")
+    if is_in_db and hashes_match and phash_distance is not None and phash_distance < 10:
+        return VerdictSchema(decision="original_confirmed", needs_review=False, reason="Registry hit + phash within threshold")
     if c2pa_status == "missing" and user_claims_original:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No C2PA manifest; user claimed original")
-    if is_in_db and hashes_match and phash_distance is not None and phash_distance < 10:
         return VerdictSchema(decision="original_confirmed", needs_review=False, reason="Registry hit + phash within threshold")
     if not is_in_db and user_claims_original:
         return VerdictSchema(decision="not_confirmed", needs_review=True, reason="No registry record; user claimed original")
@@ -62,12 +63,25 @@ async def analyze_provenance(
     If not_confirmed, explain that the origin cannot be verified.
     """
     
-    response = await client.aio.models.generate_content(
-        model='gemini-3.5-flash',
-        contents=prompt
-    )
-    
-    verdict.reason = response.text.strip()
+    import asyncio
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = await client.aio.models.generate_content(
+                model='gemini-3.5-flash',
+                contents=prompt
+            )
+            verdict.reason = response.text.strip()
+            break
+        except Exception as e:
+            error_str = str(e)
+            print(f"Gemini API attempt {attempt+1} failed: {error_str}")
+            if "503" in error_str or "UNAVAILABLE" in error_str:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+            # If we exhausted retries or it's a different error, raise it
+            raise e
     return verdict
 
 async def handle_ledger_notary(pending_hashes_count: int, high_priority: bool) -> FlushDecision:
@@ -91,12 +105,24 @@ async def handle_ledger_notary(pending_hashes_count: int, high_priority: bool) -
     Return a structured JSON strictly matching the FlushDecision schema.
     """
     
-    response = await client.aio.models.generate_content(
-        model='gemini-3.5-flash',
-        contents=prompt,
-        config={
-            "response_mime_type": "application/json",
-            "response_schema": FlushDecision,
-        }
-    )
-    return response.parsed
+    import asyncio
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = await client.aio.models.generate_content(
+                model='gemini-3.5-flash',
+                contents=prompt,
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": FlushDecision,
+                }
+            )
+            return response.parsed
+        except Exception as e:
+            error_str = str(e)
+            print(f"Gemini API Notary attempt {attempt+1} failed: {error_str}")
+            if "503" in error_str or "UNAVAILABLE" in error_str:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+            raise e
